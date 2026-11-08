@@ -1366,36 +1366,66 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
             </div>
           </div>
 
-          {/* HAFTALIK PROGRESS (+24% from Image 1 Screen 3) */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-black text-slate-900">Haftalik progress</span>
-              <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 flex items-center gap-0.5">
-                <TrendingUp className="h-3 w-3" />
-                +24%
-              </span>
-            </div>
+          {/* HAFTALIK PROGRESS (REAL USER ACTIVITY PROGRESS) */}
+          {(() => {
+            const days = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
+            const now = new Date();
+            const currentDay = now.getDay();
+            const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+            const monday = new Date(now);
+            monday.setDate(now.getDate() + distanceToMonday);
 
-            <div className="h-20 flex items-end justify-between gap-2 px-1 pt-2">
-              {[35, 50, 75, 45, 90, 80, 65].map((val, idx) => {
-                const days = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
-                const isToday = idx === todayDayIdx;
-                return (
-                  <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-                    <div
-                      style={{ height: `${val}%` }}
-                      className={`w-full rounded-md transition-all duration-500 ${
-                        isToday ? 'bg-blue-600 shadow-sm' : 'bg-blue-200'
-                      }`}
-                    />
-                    <span className="text-[9px] font-bold text-slate-400">{days[idx]}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+            const dayDistances = [0, 0, 0, 0, 0, 0, 0];
+            let totalThisWeek = 0;
 
-          {/* Redesigned Clean Weekly Streak & Calendar Card */}
+            activities.forEach((act) => {
+              if (!act.created_at) return;
+              const actDate = new Date(act.created_at);
+              const diffDays = Math.floor((actDate.getTime() - monday.getTime()) / (1000 * 60 * 60 * 24));
+              if (diffDays >= 0 && diffDays < 7) {
+                dayDistances[diffDays] += act.distance_km || 0;
+                totalThisWeek += act.distance_km || 0;
+              }
+            });
+
+            const maxDist = Math.max(...dayDistances, 3);
+            const bars = dayDistances.map((km, idx) => ({
+              day: days[idx],
+              km: Math.round(km * 100) / 100,
+              heightPct: km > 0 ? Math.max(15, Math.min(100, Math.round((km / maxDist) * 100))) : 8,
+              isToday: idx === todayDayIdx,
+            }));
+
+            return (
+              <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-black text-slate-900">Haftalik progress</span>
+                  <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 flex items-center gap-0.5">
+                    <TrendingUp className="h-3 w-3" />
+                    {totalThisWeek > 0 ? `${totalThisWeek} km` : "0 km bu hafta"}
+                  </span>
+                </div>
+
+                <div className="h-20 flex items-end justify-between gap-2 px-1 pt-2">
+                  {bars.map((b, idx) => (
+                    <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                      <div
+                        style={{ height: `${b.heightPct}%` }}
+                        className={`w-full rounded-md transition-all duration-500 ${
+                          b.isToday ? 'bg-blue-600 shadow-sm' : b.km > 0 ? 'bg-blue-400' : 'bg-slate-100'
+                        }`}
+                      />
+                      <span className={`text-[9px] font-bold ${b.isToday ? 'text-blue-600 font-black' : 'text-slate-400'}`}>
+                        {b.day}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Redesigned Clean Weekly Streak & Calendar Card (Fully Responsive, No Overflow) */}
           <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-3.5">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -1414,29 +1444,35 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
               </button>
             </div>
 
-            {/* Streak Count + 7-Day Row */}
-            <div className="flex items-center justify-between gap-2 bg-slate-50 rounded-2xl p-3 border border-slate-100">
-              <div className="flex items-center gap-2.5 shrink-0">
-                <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-100 border border-orange-200">
-                  <Flame className="h-6 w-6 text-orange-600 fill-orange-500" />
-                  <span className="absolute -bottom-1 bg-orange-600 text-white text-[10px] font-black px-1.5 rounded-full">
-                    {effectiveStreak}
-                  </span>
-                </div>
-                <div>
-                  <div className="text-[10px] text-slate-500 font-bold leading-tight">
-                    {st.yourStreak}
+            {/* Streak Count + Full 7-Day Grid (100% Fit On Small Screens) */}
+            <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100 space-y-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-100 border border-orange-200 shrink-0">
+                    <Flame className="h-5 w-5 text-orange-600 fill-orange-500" />
+                    <span className="absolute -bottom-1 bg-orange-600 text-white text-[9px] font-black px-1.5 rounded-full">
+                      {effectiveStreak}
+                    </span>
                   </div>
-                  <div className="text-base font-black text-slate-900 leading-tight mt-0.5">
-                    {effectiveStreak} {st.daysUnit}
+                  <div>
+                    <div className="text-[10px] text-slate-500 font-bold leading-tight">
+                      {st.yourStreak}
+                    </div>
+                    <div className="text-sm font-black text-slate-900 leading-tight mt-0.5">
+                      {effectiveStreak} {st.daysUnit}
+                    </div>
                   </div>
                 </div>
+
+                <span className="text-[10px] font-extrabold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">
+                  {effectiveStreak > 0 ? "🔥 Faol davom etmoqda" : "Bugun start bering"}
+                </span>
               </div>
 
-              <div className="flex items-center gap-1 sm:gap-1.5">
+              {/* 7 Days Row - Grid with 7 columns so it NEVER overflows */}
+              <div className="grid grid-cols-7 gap-1 pt-1.5 border-t border-slate-200/60">
                 {st.dayLabels.map((d, idx) => {
                   const isToday = idx === todayDayIdx;
-                  // Mark ONLY the exact consecutive streak days ending today!
                   const daysAgo = todayDayIdx - idx;
                   const isDone =
                     effectiveStreak > 0 && daysAgo >= 0 && daysAgo < effectiveStreak;

@@ -19,6 +19,7 @@ import {
   Zap,
   Home as HomeIcon,
   Dumbbell,
+  CheckCircle2,
 } from 'lucide-react';
 
 import type {
@@ -216,6 +217,103 @@ export const App: React.FC = () => {
   const liveDateStr = `${String(liveNow.getDate()).padStart(2, '0')}.${String(
     liveNow.getMonth() + 1
   ).padStart(2, '0')}.${liveNow.getFullYear()}`;
+
+  // Request device notification permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {});
+    }
+  }, []);
+
+  // Midnight Step Reset (When a new day begins, reset daily steps to 0)
+  useEffect(() => {
+    const todayStr = `${liveNow.getFullYear()}-${String(liveNow.getMonth() + 1).padStart(2, '0')}-${String(liveNow.getDate()).padStart(2, '0')}`;
+    const lastDate = localStorage.getItem('vitago_last_step_date');
+    if (lastDate && lastDate !== todayStr) {
+      if (currentUser && currentUser.daily_steps !== 0) {
+        const updated = { ...currentUser, daily_steps: 0 };
+        setCurrentUser(updated);
+        try {
+          localStorage.setItem('doriscan_user_profile', JSON.stringify(updated));
+        } catch {}
+      }
+    }
+    localStorage.setItem('vitago_last_step_date', todayStr);
+  }, [liveNow.getDate()]);
+
+  // Real Medication Alarm Audio & "Ichdim" Modal state
+  const [activeMedAlarm, setActiveMedAlarm] = useState<{ id: string; drugName: string; dose: string } | null>(null);
+  const medAlarmAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleMarkMedTaken = useCallback(() => {
+    if (!activeMedAlarm) return;
+    triggerHaptic('success');
+    if (medAlarmAudioRef.current) {
+      medAlarmAudioRef.current.pause();
+      medAlarmAudioRef.current.currentTime = 0;
+    }
+    try {
+      const raw = localStorage.getItem('vitago_user_medications');
+      if (raw) {
+        const meds = JSON.parse(raw);
+        const todayKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+        const updated = meds.map((m: any) =>
+          m.id === activeMedAlarm.id ? { ...m, done: true, lastTakenDate: todayKey } : m
+        );
+        localStorage.setItem('vitago_user_medications', JSON.stringify(updated));
+      }
+    } catch {}
+    setActiveMedAlarm(null);
+  }, [activeMedAlarm, triggerHaptic]);
+
+  // Global wall-clock checker for Medication Reminders (checks every 4 seconds)
+  useEffect(() => {
+    const checkMedTimes = () => {
+      const now = new Date();
+      const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+      try {
+        const raw = localStorage.getItem('vitago_user_medications');
+        if (!raw) return;
+        const meds = JSON.parse(raw);
+        if (!Array.isArray(meds)) return;
+
+        const dueMed = meds.find(
+          (m: any) =>
+            m.time === currentHHMM &&
+            (!m.done || m.lastTakenDate !== todayKey) &&
+            localStorage.getItem(`vitago_med_rung_${m.id}_${todayKey}`) !== currentHHMM
+        );
+
+        if (dueMed && !activeMedAlarm) {
+          localStorage.setItem(`vitago_med_rung_${dueMed.id}_${todayKey}`, currentHHMM);
+          setActiveMedAlarm({ id: dueMed.id, drugName: dueMed.drugName, dose: dueMed.dose });
+          triggerHaptic('success');
+
+          try {
+            if (!medAlarmAudioRef.current) {
+              medAlarmAudioRef.current = new Audio('/alarm.mp3');
+              medAlarmAudioRef.current.loop = true;
+            }
+            medAlarmAudioRef.current.play().catch(() => {});
+          } catch {}
+
+          if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+              new Notification('💊 Dori ichish vaqti bo‘ldi!', {
+                body: `${dueMed.drugName} (${dueMed.dose}) qabul qilish vaqti keldi. VitaGo ilovasida «Ichdim» tugmasini bosing!`,
+                icon: '/logo.png',
+              });
+            } catch {}
+          }
+        }
+      } catch {}
+    };
+
+    const interval = setInterval(checkMedTimes, 4000);
+    return () => clearInterval(interval);
+  }, [activeMedAlarm, triggerHaptic]);
 
   // Demo Budilnik State for Unregistered Guests (Max 2 tries, disappears on 3rd)
   const DEMO_ALARM_STORAGE_KEY = 'vitago_demo_alarm_count_v1';
@@ -974,9 +1072,9 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {/* Quick Mode Switcher Tabs (Scan Photo vs Search by Name) */}
+            {/* Quick Mode Switcher Tabs (Scan Photo vs Search by Name) - 100% Fit & No Clipping */}
             <div
-              className="mt-3.5 inline-flex rounded-2xl border border-slate-200 bg-slate-100/90 p-1 shadow-2xs w-full max-w-full"
+              className="mt-3.5 grid grid-cols-2 gap-1.5 rounded-2xl border border-slate-200 bg-slate-100/90 p-1 shadow-2xs w-full max-w-full"
             >
               <button
                 type="button"
@@ -984,13 +1082,13 @@ export const App: React.FC = () => {
                   setActiveTab('scanner');
                   triggerHaptic('light');
                 }}
-                className={`flex-1 inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl px-2 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-extrabold transition cursor-pointer ${
+                className={`w-full inline-flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs sm:text-sm font-black transition cursor-pointer truncate ${
                   activeTab === 'scanner'
                     ? 'bg-emerald-600 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <Camera className="h-4 w-4 shrink-0" />
                 <span className="truncate">{t.tabScanPhoto}</span>
               </button>
 
@@ -1000,13 +1098,13 @@ export const App: React.FC = () => {
                   setActiveTab('search');
                   triggerHaptic('light');
                 }}
-                className={`flex-1 inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl px-2 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-extrabold transition cursor-pointer ${
+                className={`w-full inline-flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs sm:text-sm font-black transition cursor-pointer truncate ${
                   activeTab === 'search'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Search className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <Search className="h-4 w-4 shrink-0" />
                 <span className="truncate">{t.tabSearchName}</span>
               </button>
             </div>
@@ -1519,6 +1617,42 @@ export const App: React.FC = () => {
           setPlansModalOpen(true);
         }}
       />
+
+      {/* ==================== MEDICATION ALARM MODAL WITH "ICHDIM" BUTTON ==================== */}
+      {activeMedAlarm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in">
+          <div className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl border-2 border-purple-500 text-center space-y-4 animate-in zoom-in-95">
+            <div className="h-16 w-16 rounded-3xl bg-purple-100 text-purple-600 mx-auto flex items-center justify-center text-3xl shadow-lg border border-purple-200 animate-bounce">
+              💊
+            </div>
+
+            <div>
+              <span className="text-xs font-black uppercase tracking-wider text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
+                Dori ichish vaqti bo'ldi!
+              </span>
+              <h3 className="text-xl font-black text-slate-900 mt-2">
+                {activeMedAlarm.drugName}
+              </h3>
+              <p className="text-xs font-bold text-slate-500 mt-1">
+                Miqdori: <span className="text-purple-700 font-black">{activeMedAlarm.dose}</span>
+              </p>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              Dorini o'z vaqtida ichish sog'liq uchun juda muhimdir. Qabul qilganingizdan so'ng «Ichdim» tugmasini bosing.
+            </p>
+
+            <button
+              type="button"
+              onClick={handleMarkMedTaken}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-base shadow-xl shadow-emerald-600/30 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+            >
+              <CheckCircle2 className="h-5 w-5" />
+              <span>Ichdim ✓</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

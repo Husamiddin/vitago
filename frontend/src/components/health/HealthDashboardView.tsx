@@ -36,7 +36,7 @@ interface HealthDashboardViewProps {
 
 type Period = 'today' | 'week' | 'month';
 
-interface SleepData {
+interface SleepRecord {
   bedtime: string;
   wakeTime: string;
   hours: number;
@@ -44,7 +44,13 @@ interface SleepData {
   qualityScore: number;
 }
 
-const SLEEP_STORAGE_KEY = 'vitago_user_sleep_data';
+const SLEEP_STORAGE_KEY = 'vitago_user_sleep_data_v2';
+const SLEEP_HISTORY_KEY = 'vitago_sleep_history_v2';
+
+const getTodayDateStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 export const HealthDashboardView: React.FC<HealthDashboardViewProps> = ({
   user,
@@ -61,23 +67,29 @@ export const HealthDashboardView: React.FC<HealthDashboardViewProps> = ({
   const isPremium = user?.plan === 'premium' || user?.plan === 'ultra';
   const isUltra = user?.plan === 'ultra';
 
-  // Real customizable sleep tracking state
-  const [sleepData, setSleepData] = useState<SleepData>(() => {
+  // Persistent Real Sleep Data & History
+  const [sleepData, setSleepData] = useState<SleepRecord>(() => {
     try {
       const saved = localStorage.getItem(SLEEP_STORAGE_KEY);
       if (saved) {
         return JSON.parse(saved);
       }
-    } catch {
-      // fallback
-    }
+    } catch {}
     return {
-      bedtime: '23:30',
-      wakeTime: '07:18',
-      hours: 7,
-      minutes: 48,
-      qualityScore: 89,
+      bedtime: '23:00',
+      wakeTime: '07:00',
+      hours: 8,
+      minutes: 0,
+      qualityScore: 88,
     };
+  });
+
+  const [sleepHistory, setSleepHistory] = useState<Record<string, { hours: number; minutes: number }>>(() => {
+    try {
+      const saved = localStorage.getItem(SLEEP_HISTORY_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {};
   });
 
   const [editBedtime, setEditBedtime] = useState(sleepData.bedtime);
@@ -92,7 +104,6 @@ export const HealthDashboardView: React.FC<HealthDashboardViewProps> = ({
     }
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
-    // Quality estimation based on healthy 7-9 hours range
     let quality = 70;
     if (hours >= 7 && hours <= 9) quality = 88 + Math.min(10, Math.round(minutes / 6));
     else if (hours === 6 || hours === 10) quality = 76;
@@ -104,7 +115,7 @@ export const HealthDashboardView: React.FC<HealthDashboardViewProps> = ({
     e.preventDefault();
     triggerHaptic?.('success');
     const { hours, minutes, quality } = calculateSleepDuration(editBedtime, editWakeTime);
-    const next: SleepData = {
+    const next: SleepRecord = {
       bedtime: editBedtime,
       wakeTime: editWakeTime,
       hours,
@@ -113,19 +124,60 @@ export const HealthDashboardView: React.FC<HealthDashboardViewProps> = ({
     };
     setSleepData(next);
     localStorage.setItem(SLEEP_STORAGE_KEY, JSON.stringify(next));
+
+    // Save to real history for today
+    const todayKey = getTodayDateStr();
+    const nextHistory = {
+      ...sleepHistory,
+      [todayKey]: { hours, minutes },
+    };
+    setSleepHistory(nextHistory);
+    localStorage.setItem(SLEEP_HISTORY_KEY, JSON.stringify(nextHistory));
     setShowSleepEditor(false);
   };
 
-  // Circular gauge for Health Score 98
-  const score = 98;
-  const radius = 64;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (score / 100) * circumference;
+  // Compute real weekly sleep stats (Monday to Sunday of current week)
+  const getWeekDaysSleep = () => {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 is Sunday, 1 is Monday
+    const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + distanceToMonday);
+
+    const labels = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
+    let totalRecordedHours = 0;
+    let recordedDaysCount = 0;
+
+    const days = labels.map((label, idx) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + idx);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const rec = sleepHistory[key];
+      const isToday = d.toDateString() === now.toDateString();
+      if (rec) {
+        const val = rec.hours + Math.round((rec.minutes / 60) * 10) / 10;
+        totalRecordedHours += val;
+        recordedDaysCount += 1;
+        return { label, val, text: `${val}h`, hasData: true, isToday };
+      }
+      return { label, val: 0, text: '—', hasData: false, isToday };
+    });
+
+    const avgHours = recordedDaysCount > 0 ? (totalRecordedHours / recordedDaysCount).toFixed(1) : null;
+    return { days, avgHours, recordedDaysCount };
+  };
+
+  const { days: weekDaysSleep, avgHours: avgSleepHours, recordedDaysCount } = getWeekDaysSleep();
 
   const handlePeriodChange = (p: Period) => {
     triggerHaptic?.('light');
     setPeriod(p);
   };
+
+  const dailySteps = user?.daily_steps || 0;
+  const targetSteps = user?.daily_target_steps || 6000;
+  const stepPercent = Math.min(100, Math.round((dailySteps / targetSteps) * 100));
+  const waterMl = user?.daily_water_ml || 2000;
 
   return (
     <div className="w-full max-w-lg mx-auto space-y-4 sm:space-y-5 pb-24 pt-1 animate-in fade-in duration-300">
@@ -168,62 +220,54 @@ export const HealthDashboardView: React.FC<HealthDashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 2. LARGE CIRCULAR GAUGE (98 Yaxshi) */}
-      <div className="rounded-3xl bg-white border border-slate-200 p-6 shadow-xl shadow-slate-200/60 flex flex-col items-center justify-center text-center relative overflow-hidden">
-        {/* Soft background blue blur */}
-        <div className="absolute w-48 h-48 rounded-full bg-cyan-400/10 blur-2xl pointer-events-none" />
-
-        <div className="relative flex items-center justify-center">
-          <svg className="w-44 h-44 transform -rotate-90">
-            {/* Background Track */}
-            <circle
-              cx="88"
-              cy="88"
-              r={radius}
-              className="text-slate-100"
-              strokeWidth="12"
-              stroke="currentColor"
-              fill="transparent"
-            />
-            {/* Gradient Arc */}
-            <defs>
-              <linearGradient id="scoreGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#06B6D4" />
-                <stop offset="50%" stopColor="#3B82F6" />
-                <stop offset="100%" stopColor="#10B981" />
-              </linearGradient>
-            </defs>
-            <circle
-              cx="88"
-              cy="88"
-              r={radius}
-              stroke="url(#scoreGrad)"
-              strokeWidth="12"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              fill="transparent"
-              className="transition-all duration-1000 ease-out"
-            />
-          </svg>
-
-          {/* Inner Content */}
-          <div className="absolute flex flex-col items-center justify-center">
-            <div className="h-8 w-8 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-1 animate-pulse">
-              <Heart className="h-5 w-5 fill-rose-500" />
+      {/* 2. REAL DAILY HEALTH SUMMARY (REPLACES FAKE 98 SCORE) */}
+      <div className="rounded-3xl bg-white border border-slate-200 p-5 shadow-xl shadow-slate-200/60 relative overflow-hidden">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <HeartPulse className="h-4.5 w-4.5" />
             </div>
-            <div className="text-4xl font-black text-slate-900 tracking-tight leading-none">
-              {score}
+            <div>
+              <div className="text-sm font-black text-slate-900">Kunlik Salomatlik Ko'rsatkichlari</div>
+              <div className="text-[11px] font-semibold text-slate-500">Haqiqiy tahlil va monitoring</div>
             </div>
-            <div className="text-xs font-black text-slate-500 mt-1">
-              Yaxshi
+          </div>
+          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+            Real time
+          </span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2.5 pt-4 text-center">
+          <div className="p-3 rounded-2xl bg-blue-50/60 border border-blue-100">
+            <div className="text-[10px] font-bold text-blue-700 uppercase">Qadamlar</div>
+            <div className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">
+              {dailySteps.toLocaleString()}
+            </div>
+            <div className="text-[9px] font-semibold text-blue-600 mt-0.5">
+              {stepPercent}% bajarildi
+            </div>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-purple-50/60 border border-purple-100">
+            <div className="text-[10px] font-bold text-purple-700 uppercase">Uyqu</div>
+            <div className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">
+              {sleepData.hours}h {sleepData.minutes}m
+            </div>
+            <div className="text-[9px] font-semibold text-purple-600 mt-0.5">
+              {sleepData.qualityScore}% sifat
+            </div>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-teal-50/60 border border-teal-100">
+            <div className="text-[10px] font-bold text-teal-700 uppercase">Suv normasi</div>
+            <div className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">
+              {waterMl} ml
+            </div>
+            <div className="text-[9px] font-semibold text-teal-600 mt-0.5">
+              Kunlik me'yor
             </div>
           </div>
         </div>
-
-        <p className="text-xs font-semibold text-slate-500 mt-3 max-w-xs">
-          Barcha fiziologik va uyqu ko'rsatkichlaringiz xavfsiz va barqaror diapazonda
-        </p>
       </div>
 
       {/* 3. DEDICATED REAL UYQU (SLEEP) MONITORING CARD (REPLACES FAKE 72 BPM & 118/76 MMHG) */}
@@ -337,7 +381,7 @@ export const HealthDashboardView: React.FC<HealthDashboardViewProps> = ({
         )}
       </div>
 
-      {/* 4. UYQU GRAFIGI (WEEKLY SLEEP HOURS SPLINE) */}
+      {/* 4. UYQU GRAFIGI (REAL WEEKLY SLEEP RECORD TRACKER) */}
       <div className="rounded-3xl bg-white border border-slate-200 p-4 sm:p-5 shadow-lg shadow-slate-200/50 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -347,54 +391,44 @@ export const HealthDashboardView: React.FC<HealthDashboardViewProps> = ({
             <span className="text-sm font-black text-slate-900">Uyqu grafigi (haftalik)</span>
           </div>
           <span className="text-xs font-bold text-indigo-600 flex items-center gap-0.5">
-            <span>O'rtacha 7.9h / kun</span>
+            <span>{avgSleepHours ? `O'rtacha ${avgSleepHours}h / kun` : "Hali ma'lumot kiritilmagan"}</span>
           </span>
         </div>
 
-        {/* Smooth Purple/Blue Spline Wave for Sleep */}
-        <div className="relative pt-2">
-          <svg className="w-full h-24 overflow-visible" viewBox="0 0 300 70" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="sleepWave" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#6366F1" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#6366F1" stopOpacity="0.0" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M 0,38 Q 40,25 80,30 T 160,20 T 230,35 T 300,18 L 300,70 L 0,70 Z"
-              fill="url(#sleepWave)"
-            />
-            <path
-              d="M 0,38 Q 40,25 80,30 T 160,20 T 230,35 T 300,18"
-              fill="none"
-              stroke="#6366F1"
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-            {/* Dots with sleep duration indicators */}
-            {[
-              { cx: 0, cy: 38, val: '7.5h' },
-              { cx: 50, cy: 28, val: '8.0h' },
-              { cx: 100, cy: 32, val: '7.2h' },
-              { cx: 150, cy: 20, val: '8.2h' },
-              { cx: 200, cy: 26, val: '7.8h' },
-              { cx: 250, cy: 15, val: '8.5h' },
-              { cx: 300, cy: 18, val: '8.0h' },
-            ].map((pt, i) => (
-              <g key={i}>
-                <circle cx={pt.cx} cy={pt.cy} r="4.5" fill="#6366F1" stroke="#FFFFFF" strokeWidth="2" />
-              </g>
-            ))}
-          </svg>
-          <div className="flex justify-between text-[10px] font-extrabold text-slate-500 mt-2 px-1">
-            <span className="flex flex-col items-center"><span>Du</span><span className="text-[9px] text-slate-400">7.5h</span></span>
-            <span className="flex flex-col items-center"><span>Se</span><span className="text-[9px] text-slate-400">8.0h</span></span>
-            <span className="flex flex-col items-center"><span>Ch</span><span className="text-[9px] text-slate-400">7.2h</span></span>
-            <span className="flex flex-col items-center"><span>Pa</span><span className="text-[9px] text-slate-400">8.2h</span></span>
-            <span className="flex flex-col items-center"><span>Ju</span><span className="text-[9px] text-slate-400">7.8h</span></span>
-            <span className="flex flex-col items-center"><span>Sh</span><span className="text-[9px] text-slate-400">8.5h</span></span>
-            <span className="flex flex-col items-center text-indigo-600 font-black"><span>Ya</span><span className="text-[9px]">8.0h</span></span>
+        {/* Real Daily Sleep Bars */}
+        <div className="pt-3">
+          <div className="h-28 flex items-end justify-between gap-2 px-1 border-b border-slate-100 pb-2">
+            {weekDaysSleep.map((d, idx) => {
+              const maxScaleHours = 10;
+              const heightPct = d.hasData ? Math.min(100, Math.round((d.val / maxScaleHours) * 100)) : 8;
+              return (
+                <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                  <span className={`text-[10px] font-black ${d.hasData ? 'text-indigo-600' : 'text-slate-300'}`}>
+                    {d.text}
+                  </span>
+                  <div
+                    style={{ height: `${heightPct}%` }}
+                    className={`w-full max-w-[26px] rounded-xl transition-all duration-500 ${
+                      d.hasData
+                        ? d.isToday
+                          ? 'bg-linear-to-t from-indigo-600 to-purple-500 shadow-md shadow-indigo-500/25'
+                          : 'bg-indigo-400'
+                        : 'bg-slate-100 border border-dashed border-slate-200'
+                    }`}
+                  />
+                  <span className={`text-[10px] font-black ${d.isToday ? 'text-indigo-600' : 'text-slate-500'}`}>
+                    {d.label}
+                  </span>
+                </div>
+              );
+            })}
           </div>
+
+          <p className="text-[11px] text-slate-400 font-medium text-center mt-2">
+            {recordedDaysCount > 0
+              ? `Joriy haftada ${recordedDaysCount} kunlik uyqu qayd etildi`
+              : "Tepadagi «O'zgartirish» tugmasini bosib bugungi uyqu vaqtingizni kiriting"}
+          </p>
         </div>
       </div>
 

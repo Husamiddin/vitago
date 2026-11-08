@@ -108,6 +108,10 @@ export const HealthAndElderlyModal: React.FC<HealthAndElderlyModalProps> = ({
   if (!isOpen) return null;
 
   const handleGenerateHealthPlan = async () => {
+    if (isTodayPlanActive) {
+      setErrorMsg("Bugungi AI salomatlik rejangiz allaqachon tuzilgan. Kunlik reja faqat kuniga 1 marta tuziladi va saqlanadi.");
+      return;
+    }
     setLoading(true);
     setErrorMsg(null);
     try {
@@ -154,6 +158,10 @@ export const HealthAndElderlyModal: React.FC<HealthAndElderlyModalProps> = ({
   };
 
   const handleAnalyzeElderly = async () => {
+    if (!elderlyNotes.trim() && !bloodTestImage) {
+      setErrorMsg("Iltimos, avval shikoyatlaringizni yozing yoki qon tahlili rasmini yuklang. Bo'sh ma'lumot bilan tahlil olinmaydi.");
+      return;
+    }
     setLoading(true);
     setErrorMsg(null);
     try {
@@ -333,8 +341,12 @@ export const HealthAndElderlyModal: React.FC<HealthAndElderlyModalProps> = ({
                   <button
                     type="button"
                     onClick={handleGenerateHealthPlan}
-                    disabled={loading}
-                    className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-black transition cursor-pointer shadow-xs bg-emerald-600 text-white hover:bg-emerald-700"
+                    disabled={loading || isTodayPlanActive}
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-black transition shadow-xs ${
+                      isTodayPlanActive
+                        ? 'bg-slate-100 text-slate-500 border border-slate-200 cursor-not-allowed'
+                        : 'bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer'
+                    }`}
                   >
                     {loading ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -342,7 +354,7 @@ export const HealthAndElderlyModal: React.FC<HealthAndElderlyModalProps> = ({
                       <Sparkles className="h-3.5 w-3.5" />
                     )}
                     <span>
-                      {isTodayPlanActive ? 'AI Kunlik Rejani Yangilash' : 'AI Kunlik Reja Tuzish'}
+                      {isTodayPlanActive ? '✓ Bugungi Reja Faol (Kuniga 1 marta)' : 'AI Kunlik Reja Tuzish'}
                     </span>
                   </button>
                 </div>

@@ -47,8 +47,8 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
 
   // Transfer & confirmation
   const [paymentId, setPaymentId] = useState<number | null>(null);
-  const [receiverCard, setReceiverCard] = useState('1234 5678 1234 5678');
-  const [receiverName, setReceiverName] = useState('Aminov H');
+  const [receiverCard, setReceiverCard] = useState('9860 0901 0705 5189');
+  const [receiverName, setReceiverName] = useState('K.G (Humo)');
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
 
   // Timer & polling
@@ -156,8 +156,12 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
 
   const handleConfirmSent = async () => {
     if (!paymentId) return;
+    if (!receiptImage) {
+      setErrorMsg("Iltimos, to'lov cheki skrinshotini yuklang. Cheksiz to'lov tasdiqlanmaydi.");
+      return;
+    }
+    setErrorMsg(null);
     setIsVerifying(true);
-    setSecondsLeft(60);
     setStep('timer');
     triggerHaptic?.('light');
 
@@ -170,62 +174,15 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
     }
   };
 
-  // Timer countdown & polling effect
+  // Real-time polling effect (activates ONLY when admin approves in Admin Panel)
   useEffect(() => {
     if (step !== 'timer' || !paymentId) return;
-
-    // If user is already on Ultra or selected plan, activate immediately
-    if (user?.plan === 'ultra' || user?.plan === selectedPlan) {
-      triggerHaptic?.('success');
-      onPlanActivated({
-        ...user,
-        plan: selectedPlan,
-      });
-      onClose();
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          clearInterval(timer);
-          triggerHaptic?.('success');
-          const finalProfile = user
-            ? { ...user, plan: selectedPlan }
-            : {
-                id: 1,
-                phone: '+998872207844',
-                first_name: 'Husamiddin',
-                last_name: 'Aminov',
-                gender: 'male' as const,
-                age: 14,
-                height_cm: 176,
-                weight_kg: 65,
-                token: 'doriscan_session_token',
-                is_profile_complete: true,
-                plan: selectedPlan,
-                streak_count: 1,
-                daily_steps: 0,
-                daily_target_steps: 6000,
-                daily_water_ml: 2000,
-                daily_kcal: 0,
-                alarm_enabled: false,
-              };
-          onPlanActivated(finalProfile);
-          onClose();
-          alert(`Tabriklaymiz! To'lovingiz tasdiqlandi va ${selectedPlan.toUpperCase()} rejasi muvaffaqiyatli faollashtirildi!`);
-          return 0;
-        }
-        return s - 1;
-      });
-    }, 1000);
 
     const poller = setInterval(async () => {
       try {
         const token = user?.token || '';
         const statusRes = await getPaymentStatus(paymentId, token);
         if (statusRes.is_approved) {
-          clearInterval(timer);
           clearInterval(poller);
           triggerHaptic?.('success');
           if (user) {
@@ -235,17 +192,14 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
             });
           }
           onClose();
-          alert(`Tabriklaymiz! ${statusRes.plan.toUpperCase()} rejasi muvaffaqiyatli faollashtirildi!`);
+          alert(`Tabriklaymiz! To'lovingiz administrator tomonidan tasdiqlandi va ${statusRes.plan.toUpperCase()} rejasi muvaffaqiyatli faollashtirildi!`);
         }
       } catch {
         // ignore
       }
     }, 3000);
 
-    return () => {
-      clearInterval(timer);
-      clearInterval(poller);
-    };
+    return () => clearInterval(poller);
   }, [step, paymentId, user, selectedPlan, onPlanActivated, onClose, triggerHaptic]);
 
   if (!isOpen) return null;
@@ -577,18 +531,55 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-emerald-700 leading-snug">
-                Iltimos, ilovangiz orqali (Payme, Click, Anorbank va h.k.) ushbu kartaga pulni o'tkazing va pastdagi <b>"Tashladim"</b> tugmasini bosing.
+                Iltimos, ilovangiz orqali (Payme, Click, Anorbank va h.k.) ushbu kartaga pulni o'tkazing va to'lov chekini rasmga olib pastda yuklang.
               </p>
             </div>
 
-            {/* Receipt Upload */}
+            {/* Security Guarantee Notice */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5 text-left">
+              <div className="flex items-center gap-1.5 text-xs font-black text-slate-800">
+                <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                <span>Xavfsizlik kafolati</span>
+              </div>
+              <p className="text-[11px] text-slate-700 leading-relaxed font-semibold">
+                Bu 100% xavfsiz va ishonchli. Yaqinda Click, Bank kartasi va Paynet orqali to'lash imkoniyati bo'ladi (Texnik jarayonlar olib borilmoqda...).
+              </p>
+              <p className="text-[10px] text-slate-500 leading-relaxed">
+                🛡️ VitaGo foydalanuvchilaridan hech qachon karta paroli, SMS kod yoki maxfiy ma'lumotlarni so'ramaydi va hisobidan ruxsatsiz pul yechmaydi.
+              </p>
+            </div>
+
+            {/* Receipt Upload (Mandatory) */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">To'lov cheki skrinshoti (ixtiyoriy)</label>
-              <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 rounded-2xl hover:border-emerald-500 bg-slate-50 cursor-pointer transition">
-                <Upload className="h-6 w-6 text-slate-400 mb-1" />
-                <span className="text-xs font-bold text-slate-600">
-                  {receiptImage ? "Chek tanlandi (o'zgartirish uchun bosing)" : "Chek rasmini yuklash"}
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-bold text-slate-700">To'lov cheki skrinshoti</label>
+                <span className="text-[10px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                  Majburiy
                 </span>
+              </div>
+              <label className={`flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-2xl cursor-pointer transition ${
+                receiptImage
+                  ? 'border-emerald-500 bg-emerald-50/50'
+                  : 'border-slate-300 bg-slate-50 hover:border-emerald-500'
+              }`}>
+                {receiptImage ? (
+                  <div className="text-center space-y-1">
+                    <Check className="h-6 w-6 text-emerald-600 mx-auto" />
+                    <span className="text-xs font-black text-emerald-700 block">
+                      Chek biriktirildi ✓ (O'zgartirish uchun bosing)
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-center space-y-1">
+                    <Upload className="h-6 w-6 text-slate-400 mx-auto" />
+                    <span className="text-xs font-bold text-slate-600 block">
+                      Chek rasmini yuklash uchun bosing
+                    </span>
+                    <span className="text-[10px] text-slate-400 block">
+                      Bank ilovasidan olingan to'lov kvitansiyasi
+                    </span>
+                  </div>
+                )}
                 <input type="file" accept="image/*" onChange={handleReceiptUpload} className="hidden" />
               </label>
             </div>
@@ -596,33 +587,53 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
             <button
               type="button"
               onClick={handleConfirmSent}
-              className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm transition shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 cursor-pointer"
+              disabled={!receiptImage}
+              className={`w-full py-3.5 rounded-2xl text-white font-extrabold text-sm transition shadow-lg flex items-center justify-center gap-2 ${
+                receiptImage
+                  ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25 cursor-pointer'
+                  : 'bg-slate-300 cursor-not-allowed shadow-none'
+              }`}
             >
               <Check className="h-5 w-5" />
-              <span>Tashladim (To'lovni tasdiqlash)</span>
+              <span>{receiptImage ? "Chekni tasdiqlash uchun yuborish" : "Avval chek rasmini yuklang"}</span>
             </button>
           </div>
         )}
 
-        {/* STEP 4: 1-MINUTE TIMER & REAL-TIME VERIFICATION */}
+        {/* STEP 4: WAITING FOR ADMIN APPROVAL */}
         {step === 'timer' && (
           <div className="p-6 text-center space-y-4">
-            <div className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-50 border-4 border-emerald-500 shadow-xl">
-              <span className="text-2xl font-black text-emerald-700 font-mono">{secondsLeft}s</span>
-              <Clock className="h-5 w-5 text-emerald-600 absolute -top-1 -right-1" />
+            <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-amber-50 border-2 border-amber-300 text-amber-600 shadow-xl">
+              <Clock className="h-10 w-10 animate-pulse text-amber-600" />
             </div>
 
             <div>
-              <h4 className="text-lg font-black text-slate-900">To'lov tekshirilmoqda...</h4>
-              <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
-                Admin to'lovni 1 daqiqa ichida tekshiradi va rejangiz darhol faollashadi. Iltimos, ushbu oynani yopmay turing.
+              <span className="text-[11px] font-black uppercase text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                Tekshiruv jarayonida
+              </span>
+              <h4 className="text-lg font-black text-slate-900 mt-2">To'lov chekingiz yuborildi!</h4>
+              <p className="text-xs text-slate-600 mt-1.5 max-w-sm mx-auto leading-relaxed">
+                To'lov cheki qabul qilindi. Administrator tomonidan tekshirilmoqda va tasdiqlangandan so'ng <b>{selectedPlan.toUpperCase()}</b> rejangiz avtomatik tarzda faollashadi.
               </p>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-xs text-emerald-700 font-bold">
-              <RefreshCw className="h-4 w-4 animate-spin text-emerald-600" />
-              <span>Server bilan tekshiruv davom etmoqda...</span>
+            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-1 text-xs text-slate-600">
+              <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                <RefreshCw className="h-3.5 w-3.5 animate-spin text-emerald-600" />
+                <span>Status: Tasdiqlanishi kutilmoqda...</span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Admin tasdiqlagach rejangiz darhol ochiladi. Oynani yopib ilovadan foydalanishda davom etishingiz mumkin.
+              </p>
             </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer"
+            >
+              Tushunarli (Ilovaga qaytish)
+            </button>
           </div>
         )}
       </div>

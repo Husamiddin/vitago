@@ -21,6 +21,24 @@ import {
 import type { UserProfile, WorkoutPlanResponse, ExerciseItem } from '../../types/api';
 import { getWorkoutPlan } from '../../services/apiClient';
 
+export const getExerciseEmoji = (iconOrName?: string, isYoga?: boolean): string => {
+  if (!iconOrName) return isYoga ? '🧘' : '🏃';
+  const s = iconOrName.toLowerCase();
+  if (s.includes('warm') || s.includes('qizib') || s.includes('yurish') || s.includes('walk')) return '🏃';
+  if (s.includes('squat') || s.includes('o\'tirib') || s.includes('oyoq') || s.includes('tizza')) return '🦵';
+  if (s.includes('push') || s.includes('otjim') || s.includes('kuch') || s.includes('biceps')) return '💪';
+  if (s.includes('plank') || s.includes('press') || s.includes('qorin')) return '🛡️';
+  if (s.includes('lung') || s.includes('qadam')) return '🚶';
+  if (s.includes('jump') || s.includes('sakrash')) return '⚡';
+  if (s.includes('mushuk') || s.includes('sigir') || s.includes('marjary')) return '🐈';
+  if (s.includes('bola') || s.includes('bala') || s.includes('child')) return '🌸';
+  if (s.includes('tog') || s.includes('tadasana') || s.includes('mountain')) return '⛰️';
+  if (s.includes('nafas') || s.includes('pranayama') || s.includes('tinch')) return '🫁';
+  if (s.includes('stretch') || s.includes('cho\'z') || s.includes('egil') || s.includes('yoga')) return '🧘';
+  if (/\p{Extended_Pictographic}/u.test(iconOrName)) return iconOrName;
+  return isYoga ? '🧘' : '🏃';
+};
+
 interface AIWorkoutModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -86,41 +104,46 @@ export const AIWorkoutModal: React.FC<AIWorkoutModalProps> = ({
     fetchPlan();
   }, [isOpen, workoutType, user?.token, user?.age, isYoga]);
 
-  // Timer loop
+  // 1-second continuous countdown interval (tick down smoothly every second)
   useEffect(() => {
-    let interval: any = null;
-    if (isTimerRunning && timerSeconds > 0) {
-      interval = setInterval(() => {
-        setTimerSeconds((prev) => prev - 1);
-      }, 1000);
-    } else if (timerSeconds === 0 && isTimerRunning) {
-      setIsTimerRunning(false);
-      triggerHaptic?.('success');
+    if (!isTimerRunning) return;
 
-      if (!isResting && plan && activeStep < plan.exercises.length) {
-        // Switch to rest interval
-        setIsResting(true);
-        const rest = plan.exercises[activeStep]?.rest_sec || 20;
-        setTimerSeconds(rest);
-        setIsTimerRunning(true);
-      } else if (isResting && plan) {
-        // Move to next exercise
-        setIsResting(false);
-        const next = activeStep + 1;
-        if (next < plan.exercises.length) {
-          setActiveStep(next);
-          setTimerSeconds(45);
-          setIsTimerRunning(true);
-        } else {
-          // Completed
-          setActiveStep(plan.exercises.length);
-          onCompleteWorkout?.(plan.estimated_kcal, plan.total_duration_min);
-        }
-      }
-    }
+    const interval = setInterval(() => {
+      setTimerSeconds((prev) => {
+        if (prev <= 1) return 0;
+        return prev - 1;
+      });
+    }, 1000);
 
     return () => clearInterval(interval);
-  }, [isTimerRunning, timerSeconds, isResting, activeStep, plan, triggerHaptic, onCompleteWorkout]);
+  }, [isTimerRunning]);
+
+  // When timer reaches 0, transition to rest or next exercise
+  useEffect(() => {
+    if (timerSeconds !== 0 || !isTimerRunning) return;
+
+    triggerHaptic?.('success');
+
+    if (!isResting && plan && activeStep < plan.exercises.length) {
+      // Switch to rest interval
+      setIsResting(true);
+      const rest = plan.exercises[activeStep]?.rest_sec || 20;
+      setTimerSeconds(rest);
+    } else if (isResting && plan) {
+      // Move to next exercise
+      setIsResting(false);
+      const next = activeStep + 1;
+      if (next < plan.exercises.length) {
+        setActiveStep(next);
+        setTimerSeconds(45);
+      } else {
+        // Completed
+        setActiveStep(plan.exercises.length);
+        setIsTimerRunning(false);
+        onCompleteWorkout?.(plan.estimated_kcal, plan.total_duration_min);
+      }
+    }
+  }, [timerSeconds, isTimerRunning, isResting, activeStep, plan, triggerHaptic, onCompleteWorkout]);
 
   if (!isOpen) return null;
 
@@ -275,7 +298,7 @@ export const AIWorkoutModal: React.FC<AIWorkoutModalProps> = ({
                     >
                       <div className="flex items-center gap-3">
                         <span className="h-9 w-9 rounded-xl bg-white shadow-2xs border border-slate-200 flex items-center justify-center text-lg shrink-0">
-                          {ex.animation_icon || '🧘'}
+                          {getExerciseEmoji(ex.animation_icon || ex.name, isYoga)}
                         </span>
                         <div>
                           <div className={`font-black text-slate-900 ${isYoga ? 'text-sm sm:text-base' : 'text-xs sm:text-sm'}`}>
@@ -341,7 +364,7 @@ export const AIWorkoutModal: React.FC<AIWorkoutModalProps> = ({
                   <div className={`h-24 w-24 rounded-3xl flex items-center justify-center text-5xl shadow-md border-2 ${
                     isResting ? 'bg-amber-100 border-amber-300' : isYoga ? 'bg-purple-100 border-purple-300 animate-pulse' : 'bg-blue-100 border-blue-300'
                   }`}>
-                    {isResting ? '💧' : currentExercise.animation_icon || '🧘'}
+                    {isResting ? '💧' : getExerciseEmoji(currentExercise.animation_icon || currentExercise.name, isYoga)}
                   </div>
                 </div>
 
