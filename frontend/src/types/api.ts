@@ -132,6 +132,7 @@ export interface UserProfile {
   sport_activities_json?: string | null;
   alarm_time?: string | null;
   alarm_enabled: boolean;
+  telegram_id?: number | null;
 }
 
 export interface PlanFeature {

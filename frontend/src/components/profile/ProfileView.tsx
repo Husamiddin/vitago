@@ -18,6 +18,7 @@ import {
 import type { UserProfile, SupportedLang } from '../../types/api';
 import type { TranslationDict } from '../../i18n/translations';
 import { AIGoalsModal } from './AIGoalsModal';
+import { RemindersSettingsModal } from './RemindersSettingsModal';
 
 interface ProfileViewProps {
   user: UserProfile | null;
@@ -47,6 +48,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   triggerHaptic,
 }) => {
   const [goalsModalOpen, setGoalsModalOpen] = useState(false);
+  const [remindersModalOpen, setRemindersModalOpen] = useState(false);
   const name = user ? `${user.first_name} ${user.last_name || ''}`.trim() : 'Mehmon (Ro`yxatdan o`tmagan)';
   const plan = user?.plan || 'standard';
   const steps = user?.daily_steps || 0;
@@ -176,10 +178,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-emerald-600 transition" />
         </button>
 
-        {/* Bildirishnomalar */}
+        {/* Bildirishnomalar & Telegram Reminders */}
         <button
           type="button"
-          onClick={() => handleClick(() => onOpenLegalModal('faq'))}
+          onClick={() => handleClick(() => setRemindersModalOpen(true))}
           className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-slate-50 rounded-2xl transition cursor-pointer group"
         >
           <div className="flex items-center gap-3">
@@ -187,8 +189,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <Bell className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-xs sm:text-sm font-black text-slate-900">Bildirishnomalar</div>
-              <div className="text-[10px] text-slate-400 font-semibold">Dori va mashg'ulot eslatmalari</div>
+              <div className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-2">
+                <span>Bildirishnomalar</span>
+                {user?.telegram_id ? (
+                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-100 text-sky-800">
+                    TG Ulangan
+                  </span>
+                ) : null}
+              </div>
+              <div className="text-[10px] text-slate-400 font-semibold">Dori, sport va Telegram eslatmalari</div>
             </div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-purple-600 transition" />
@@ -333,6 +342,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           onGoalUpdated?.(updated);
         }}
         triggerHaptic={triggerHaptic}
+      />
+
+      {/* Smart Reminders & Telegram Settings Modal */}
+      <RemindersSettingsModal
+        isOpen={remindersModalOpen}
+        onClose={() => setRemindersModalOpen(false)}
+        currentUser={user as any}
+        triggerHaptic={triggerHaptic as any}
       />
     </div>
   );
