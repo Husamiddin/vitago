@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Sparkles, ArrowRight, CheckCircle2, X } from 'lucide-react';
+import { Search, Sparkles, ArrowRight, CheckCircle2, X, WifiOff, ShieldAlert } from 'lucide-react';
 import type { DrugSearchItem, SupportedLang } from '../../types/api';
 import { searchDrugs } from '../../services/apiClient';
 import { formatUzs, type TranslationDict } from '../../i18n/translations';
+import { searchOfflineDrugs, type PublicDrugReference } from '../../services/offlineDrugCache';
 
 interface DrugSearchBarProps {
   t: TranslationDict;
@@ -44,16 +45,78 @@ export const DrugSearchBar: React.FC<DrugSearchBarProps> = ({
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<DrugSearchItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isOfflineResults, setIsOfflineResults] = useState(false);
 
   useEffect(() => {
     let active = true;
     const timer = setTimeout(async () => {
       setIsSearching(true);
+      setIsOfflineResults(false);
+
+      if (!navigator.onLine) {
+        // Direct offline IndexedDB search
+        try {
+          const offlineHits = await searchOfflineDrugs(query);
+          if (active) {
+            setResults(
+              offlineHits.map((h) => ({
+                id: h.id,
+                trade_name: h.trade_name,
+                inn: h.inn,
+                inn_localized: lang === 'ru' ? (h.inn_ru || h.inn) : (h.inn_uz || h.inn),
+                dosage: h.dosage_and_form || '',
+                dosage_and_form: h.dosage_and_form || '',
+                analogs_count: 0,
+                cheapest_analog_uzs: null,
+                avg_price_uzs: 0,
+                is_local_uz: h.is_local_uz || false,
+                manufacturer: h.manufacturer || "O'zbekiston",
+                country: h.is_local_uz ? "O'zbekiston" : 'Xorijiy',
+                is_offline_cached: true,
+              } as any))
+            );
+            setIsOfflineResults(true);
+          }
+        } catch {
+          if (active) setResults([]);
+        } finally {
+          if (active) setIsSearching(false);
+        }
+        return;
+      }
+
       try {
         const items = await searchDrugs(query, lang);
         if (active) setResults(items);
       } catch {
-        if (active) setResults([]);
+        // Fallback to offline search on network error
+        try {
+          const offlineHits = await searchOfflineDrugs(query);
+          if (active && offlineHits.length > 0) {
+            setResults(
+              offlineHits.map((h) => ({
+                id: h.id,
+                trade_name: h.trade_name,
+                inn: h.inn,
+                inn_localized: lang === 'ru' ? (h.inn_ru || h.inn) : (h.inn_uz || h.inn),
+                dosage: h.dosage_and_form || '',
+                dosage_and_form: h.dosage_and_form || '',
+                analogs_count: 0,
+                cheapest_analog_uzs: null,
+                avg_price_uzs: 0,
+                is_local_uz: h.is_local_uz || false,
+                manufacturer: h.manufacturer || "O'zbekiston",
+                country: h.is_local_uz ? "O'zbekiston" : 'Xorijiy',
+                is_offline_cached: true,
+              } as any))
+            );
+            setIsOfflineResults(true);
+          } else if (active) {
+            setResults([]);
+          }
+        } catch {
+          if (active) setResults([]);
+        }
       } finally {
         if (active) setIsSearching(false);
       }
@@ -145,6 +208,11 @@ export const DrugSearchBar: React.FC<DrugSearchBarProps> = ({
                         🇺🇿 UZ
                       </span>
                     )}
+                    {(item as any).is_offline_cached && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-900 border border-amber-300">
+                        <WifiOff className="w-2.5 h-2.5" /> Offline kesh
+                      </span>
+                    )}
                   </div>
                   <p className="mt-0.5 truncate text-xs text-slate-500">
                     <span className="font-semibold text-blue-700">{item.inn_localized}</span> •{' '}
@@ -153,22 +221,41 @@ export const DrugSearchBar: React.FC<DrugSearchBarProps> = ({
                 </div>
 
                 <div className="shrink-0 text-right">
-                  <div className="text-sm font-extrabold text-slate-900">
-                    ~{formatUzs(item.avg_price_uzs, lang)}
-                  </div>
-                  {item.cheapest_analog_uzs !== null ? (
-                    <div className="mt-0.5 inline-flex items-center gap-1 rounded-lg bg-emerald-100 px-2 py-0.5 text-[11px] font-extrabold text-emerald-800">
-                      <CheckCircle2 className="h-3 w-3" />
-                      {t.cheapestFrom} {formatUzs(item.cheapest_analog_uzs, lang)}
+                  {(item as any).is_offline_cached ? (
+                    <div className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                      Narx: Faqat onlayn
                     </div>
                   ) : (
-                    <div className="mt-0.5 text-[11px] font-semibold text-slate-400">
-                      {item.analogs_count} {t.analogsAvailable}
-                    </div>
+                    <>
+                      <div className="text-sm font-extrabold text-slate-900">
+                        ~{formatUzs(item.avg_price_uzs, lang)}
+                      </div>
+                      {item.cheapest_analog_uzs !== null ? (
+                        <div className="mt-0.5 inline-flex items-center gap-1 rounded-lg bg-emerald-100 px-2 py-0.5 text-[11px] font-extrabold text-emerald-800">
+                          <CheckCircle2 className="h-3 w-3" />
+                          {t.cheapestFrom} {formatUzs(item.cheapest_analog_uzs, lang)}
+                        </div>
+                      ) : (
+                        <div className="mt-0.5 text-[11px] font-semibold text-slate-400">
+                          {item.analogs_count} {t.analogsAvailable}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </button>
             ))}
+
+          {/* Offline safety notification if offline results are showing */}
+          {isOfflineResults && results.length > 0 && (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-[11px] text-amber-900 flex items-start gap-2">
+              <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+              <p>
+                <b>Offline rejim eslatmasi:</b> Ushbu dori vositalari qurilmangizning lokal xotirasidan ko'rsatilmoqda.
+                Dorixonalardagi aniq narxlar va qoldiqlar farq qilishi mumkin. Dori dozasini o'zboshimchalik bilan o'zgartirmang!
+              </p>
+            </div>
+          )}
 
           {/* Hybrid AI Fallback Lookup Button */}
           {query.trim().length >= 2 && (

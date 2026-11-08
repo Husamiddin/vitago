@@ -72,6 +72,7 @@ import { AlarmMissionModal } from './components/alarm/AlarmMissionModal';
 import { LegalModal, type LegalModalTab } from './components/legal/LegalModal';
 import { WelcomePageModal } from './components/onboarding/WelcomePageModal';
 import { PwaInstallBanner } from './components/common/PwaInstallBanner';
+import { OfflineBanner } from './components/common/OfflineBanner';
 import { AICoachNotificationBanner } from './components/common/AICoachNotificationBanner';
 import { VitaGoSportView } from './components/sport/VitaGoSportView';
 import { HomeDashboardView } from './components/home/HomeDashboardView';
@@ -711,6 +712,9 @@ export const App: React.FC = () => {
             }}
             triggerHaptic={triggerHaptic}
           />
+
+          {/* Offline PWA Connectivity Banner */}
+          <OfflineBanner />
 
           {/* PWA / Mobile Install Banner */}
           <PwaInstallBanner />
