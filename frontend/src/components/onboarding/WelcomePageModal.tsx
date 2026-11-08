@@ -66,7 +66,7 @@ const HEALTH_FEATURES: FeaturePreviewData[] = [
     badge: 'Free',
     badgeColor: 'emerald',
     iconName: 'search',
-    summary: "O'zbekistondagi 3,000+ dorilarning rasmiy narxlari va qo'llash yo'riqnomasi.",
+    summary: "Rasmiy bazadagi 130+ dori vositalarining narxlari va qo'llash yo'riqnomasi.",
     description:
       "Dori nomini yoki kasallik alomatini yozing. VitaGo dorixonalaridagi aktual narxlar, dozalash, farmakologik guruh va eng yaqin analoglarni bir zumda chiqarib beradi.",
     howItWorks: [
@@ -173,7 +173,7 @@ const SPORT_FEATURES: FeaturePreviewData[] = [
     badge: 'Ultra',
     badgeColor: 'purple',
     iconName: 'map',
-    summary: "±3m aniqlikdagi jonli GPS marshrut, tezlik va balandlik ko'rsatkichlari.",
+    summary: "Qurilma datchiklariga asoslangan jonli GPS marshrut, tezlik va balandlik ko'rsatkichlari.",
     description:
       "Yugurish yoki velosiped haydash paytida haqiqiy sun'iy yo'ldosh GPS ma'lumotlari asosida marshrutingiz xaritada chiziladi. Hech qanday soxta masofa yo'q — har bir metr haqiqatdan bosib o'tiladi.",
     howItWorks: [
@@ -288,7 +288,7 @@ const LIFE_FEATURES: FeaturePreviewData[] = [
       'Faqat to‘g‘ri javob berilgandagina signal o‘chadi',
     ],
     benefits: [
-      '100% uxlab qolishning oldini oladi',
+      "Aqliy va jismoniy missiyalar orqali uxlab qolishning oldini oladi",
       'Tongni aqliy uyg‘oq va tetik boshlaysiz',
     ],
     demoType: 'smart_alarm_math',
@@ -405,14 +405,20 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
         {/* ======================================================== */}
         <div className="flex-shrink-0 px-4 sm:px-6 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white/90 backdrop-blur-md z-20">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-md shadow-blue-500/20">
-              V
-            </div>
+            <img
+              src="/logo.png"
+              alt="VitaGo"
+              className="h-8 w-8 rounded-xl object-contain shadow-xs bg-slate-50"
+              onError={(e) => {
+                const target = e.currentTarget as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+            />
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-black text-slate-900 text-sm tracking-tight">VitaGo</span>
-                <span className="text-[10px] font-black px-1.5 py-0.2 rounded-sm bg-blue-50 text-blue-700 border border-blue-200">
-                  2.0 AI
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
+                  AI Platform
                 </span>
               </div>
               <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
@@ -555,25 +561,22 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
             </div>
 
             {/* TRUST & METRICS BANNER */}
-            <div className="rounded-2xl bg-slate-900 text-white p-4 sm:p-5 flex flex-wrap items-center justify-around gap-4 text-center">
-              <div>
-                <div className="text-base sm:text-lg font-black text-blue-400">3,000+</div>
-                <div className="text-[10px] text-slate-400 font-bold uppercase">Dorilar bazasi</div>
+            <div className="rounded-2xl bg-slate-900 text-white p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <div className="p-1">
+                <div className="text-base sm:text-lg font-black text-blue-400">130+</div>
+                <div className="text-[10px] text-slate-400 font-bold uppercase">Rasmiy dorilar</div>
               </div>
-              <div className="h-8 w-px bg-slate-800 hidden sm:block" />
-              <div>
-                <div className="text-base sm:text-lg font-black text-emerald-400">±3m</div>
-                <div className="text-[10px] text-slate-400 font-bold uppercase">GPS Aniqligi</div>
+              <div className="p-1">
+                <div className="text-base sm:text-lg font-black text-emerald-400">Jonli GPS</div>
+                <div className="text-[10px] text-slate-400 font-bold uppercase">Sensor kuzatuvi</div>
               </div>
-              <div className="h-8 w-px bg-slate-800 hidden sm:block" />
-              <div>
-                <div className="text-base sm:text-lg font-black text-amber-400">100%</div>
-                <div className="text-[10px] text-slate-400 font-bold uppercase">Buzulmas Budilnik</div>
+              <div className="p-1">
+                <div className="text-base sm:text-lg font-black text-amber-400">Aqlli</div>
+                <div className="text-[10px] text-slate-400 font-bold uppercase">Missiyali Budilnik</div>
               </div>
-              <div className="h-8 w-px bg-slate-800 hidden sm:block" />
-              <div>
-                <div className="text-base sm:text-lg font-black text-indigo-400">-70%</div>
-                <div className="text-[10px] text-slate-400 font-bold uppercase">Dori Tejamkorligi</div>
+              <div className="p-1">
+                <div className="text-base sm:text-lg font-black text-indigo-400">-70% gacha</div>
+                <div className="text-[10px] text-slate-400 font-bold uppercase">Analog tejamkorligi</div>
               </div>
             </div>
 

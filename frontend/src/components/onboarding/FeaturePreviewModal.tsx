@@ -228,9 +228,9 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
             {feature.demoType === 'prescription_scanner' && (
               <div className="space-y-3">
                 <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
-                  <div className="text-[11px] font-bold text-slate-400">Namunaviy retsept:</div>
+                  <div className="text-[11px] font-bold text-slate-400">Namunaviy retsept (Ko'rgazmali demo):</div>
                   <div className="font-serif italic text-sm text-slate-800 mt-0.5">
-                    "Augmentin 625mg №14 — 1 tab x 2 mahal, ovqatdan keyin 7 kun"
+                    "Nurofen 400mg №12 (Ibuprofen) — 1 tabletka og'riqda, ovqatdan so'ng"
                   </div>
                 </div>
 
@@ -244,32 +244,40 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
                     className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md shadow-blue-500/20"
                   >
                     <Scan className="h-4 w-4" />
-                    Skanerlashni sinab ko'rish (1 soniya)
+                    Skanerlash namunasini ko'rish
                   </button>
                 ) : (
-                  <div className="space-y-2 animate-in fade-in duration-300">
+                  <div className="space-y-2.5 animate-in fade-in duration-300">
                     <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2">
-                      <div className="flex items-center justify-between text-xs font-black text-emerald-800">
-                        <span>Topilgan dori: Augmentin 625mg</span>
-                        <span className="text-slate-500 line-through">85 000 so'm</span>
+                      <div className="flex items-center justify-between text-xs font-black text-emerald-900">
+                        <span>Brend dori: Nurofen 400mg</span>
+                        <span className="text-slate-500 line-through">42 000 so'm</span>
                       </div>
                       <div className="p-2.5 rounded-lg bg-white border border-emerald-300 flex items-center justify-between">
                         <div>
                           <div className="text-xs font-black text-slate-900">
-                            Arzon analog: Amoksitsillin 500mg
+                            Rasmiy generik analog: Ibuprofen 400mg
                           </div>
-                          <div className="text-[10px] text-emerald-600 font-bold">
-                            Tarkibi va ta'siri 100% bir xil
+                          <div className="text-[10px] text-emerald-700 font-bold">
+                            Faol modda: 100% bir xil (Ibuprofen 400mg)
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-xs font-black text-emerald-700">27 000 so'm</div>
+                          <div className="text-xs font-black text-emerald-700">12 000 so'm</div>
                           <span className="text-[9px] font-black px-1.5 py-0.5 rounded-sm bg-emerald-600 text-white">
-                            -68% tejash
+                            -71% tejash
                           </span>
                         </div>
                       </div>
                     </div>
+
+                    <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-1.5 text-[10px] text-amber-800 font-semibold leading-relaxed">
+                      <AlertTriangle className="h-3.5 w-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <span>
+                        <strong>Tibbiy xavfsizlik:</strong> Ushbu demo namunaviy hisoblanadi. Hech qachon dori vositasi yoki dozasini davolovchi shifokor yoki farmatsevt maslahatisiz mustaqil o'zgartirmang.
+                      </span>
+                    </div>
+
                     <button
                       type="button"
                       onClick={() => setDemoPrescriptionScanned(false)}
@@ -302,8 +310,8 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
                     <span>Paratsetamol 500mg №10</span>
                     <span className="text-blue-600 font-bold">4 500 — 7 000 so'm</span>
                   </div>
-                  <div className="text-[11px] text-slate-500">
-                    Og'riq qoldiruvchi va isitma tushiruvchi vosita • 42 ta dorixonada mavjud
+                  <div className="text-[11px] text-slate-500 font-medium">
+                    Analgetik va antipiretik vosita • Dorixonalardagi narxlar taqqoslanadi
                   </div>
                 </div>
               </div>
@@ -316,19 +324,22 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
                   <MessageSquare className="h-4 w-4 text-blue-600 flex-shrink-0" />
                   <span>"Paratsetamol va Ibuprofen bir vaqtda mumkinmi?"</span>
                 </div>
-                <div className="p-3 rounded-xl bg-white border border-slate-200 text-xs space-y-1.5">
+                <div className="p-3 rounded-xl bg-white border border-slate-200 text-xs space-y-2">
                   <div className="flex items-center gap-1.5 font-black text-blue-700">
                     <Sparkles className="h-3.5 w-3.5" />
-                    <span>AI Farmatsevt tavsiyasi:</span>
+                    <span>AI Farmatsevt axborot xulosasi:</span>
                   </div>
                   <p className="text-[11px] text-slate-700 leading-relaxed font-medium">
-                    "Ha, kuchli isitma paytida navbatma-navbat (4-6 soatlik oraliq bilan) qabul
-                    qilish mumkin. Lekin bir vaqtning o'zida ichish oshqozon shilliq qavatiga yuklama
-                    berishi mumkin."
+                    "Paratsetamol va Ibuprofen turli xil farmakologik guruhga kiradi. Ularni bir vaqtda birga qabul qilish jigar va buyraklarga ortiqcha yuklama berishi mumkin. Faqat shifokor ko'rsatmasi bilan qat'iy vaqt oraliqlariga (Paratsetamol 4-6 soat, Ibuprofen 6-8 soat) rioya qilgan holda navbatma-navbat berilishi mumkin."
                   </p>
-                  <div className="pt-1 flex items-center gap-1 text-[10px] text-amber-700 font-bold bg-amber-50 p-1.5 rounded-lg border border-amber-200">
-                    <AlertTriangle className="h-3 w-3 flex-shrink-0 text-amber-600" />
-                    <span>Ogohlantirish: AI shifokor ko'rigi o'rnini bosmaydi.</span>
+                  <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 space-y-1 text-[10px] text-amber-900 font-bold">
+                    <div className="flex items-center gap-1 text-amber-700">
+                      <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 text-amber-600" />
+                      <span>Shifokor ko'rigi zarur:</span>
+                    </div>
+                    <p className="font-medium text-amber-800">
+                      Ushbu javob individual davolash rejasi emas. Shoshilinch vaziyatlarda zudlik bilan 103 tez tibbiy yordam xizmatiga qo'ng'iroq qiling.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -376,7 +387,7 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
                       Marshrut: Toshkent shahar bog'i
                     </span>
                     <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">
-                      GPS Faol (±3m)
+                      GPS Marshrut (Datchik faol)
                     </span>
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-center pt-1">
@@ -390,7 +401,7 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
                     </div>
                     <div className="p-2 rounded-lg bg-slate-50">
                       <div className="text-[10px] font-bold text-slate-400">Tezlik</div>
-                      <div className="text-xs font-black text-blue-600">8.7 km/s</div>
+                      <div className="text-xs font-black text-blue-600">8.7 km/soat</div>
                     </div>
                   </div>
                 </div>
