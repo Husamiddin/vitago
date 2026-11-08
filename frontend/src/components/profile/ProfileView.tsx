@@ -28,6 +28,7 @@ interface ProfileViewProps {
   onOpenLegalModal: (tab: 'how_it_works' | 'pricing' | 'stats' | 'faq' | 'terms' | 'privacy' | 'refund') => void;
   onOpenPlans: () => void;
   onLogout: () => void;
+  onOpenOnboarding?: () => void;
   onGoalUpdated?: (updatedUser: UserProfile) => void;
   triggerHaptic?: (type?: 'light' | 'success') => void;
 }
@@ -41,6 +42,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenLegalModal,
   onOpenPlans,
   onLogout,
+  onOpenOnboarding,
   onGoalUpdated,
   triggerHaptic,
 }) => {
@@ -218,6 +220,33 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
           <ChevronRight className="h-4 w-4 text-emerald-600 group-hover:translate-x-0.5 transition" />
         </button>
+
+        {/* Platforma tanishtiruvi (Onboarding) */}
+        {onOpenOnboarding && (
+          <button
+            type="button"
+            onClick={() => handleClick(onOpenOnboarding)}
+            className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-slate-50 rounded-2xl transition cursor-pointer group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-linear-to-tr from-blue-500 to-indigo-500 text-white flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-1.5">
+                  <span>Platforma tanishtiruvi</span>
+                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-sm bg-blue-100 text-blue-700">
+                    Onboarding
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-400 font-semibold">
+                  Sog'liq, Sport va Life barcha imkoniyatlari
+                </div>
+              </div>
+            </div>
+            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-blue-600 transition" />
+          </button>
+        )}
 
         {/* Sozlamalar (Til va rejim) */}
         <div className="px-4 py-3.5 flex items-center justify-between rounded-2xl">

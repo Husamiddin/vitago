@@ -29,6 +29,7 @@ interface LegalModalProps {
   activeTab: LegalModalTab;
   onClose: () => void;
   onOpenPlans: () => void;
+  onOpenOnboarding?: () => void;
 }
 
 export const LegalModal: React.FC<LegalModalProps> = ({
@@ -36,6 +37,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
   activeTab,
   onClose,
   onOpenPlans,
+  onOpenOnboarding,
 }) => {
   const [currentTab, setCurrentTab] = useState<LegalModalTab>(activeTab);
 
@@ -118,6 +120,21 @@ export const LegalModal: React.FC<LegalModalProps> = ({
           {/* 1. QANDAY ISHLAYDI */}
           {currentTab === 'how_it_works' && (
             <div className="space-y-4">
+              {onOpenOnboarding && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenOnboarding();
+                  }}
+                  className="w-full py-3 px-4 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs sm:text-sm shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer transition"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>Interaktiv Tanishtiruv (Onboarding) ni boshlash</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              )}
+
               <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-950 space-y-1">
                 <span className="font-black text-sm block">💡 3 ta oddiy qadamda 70% gacha tejash:</span>
                 <p className="text-xs text-blue-800">

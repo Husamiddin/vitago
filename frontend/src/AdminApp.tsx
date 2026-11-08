@@ -47,6 +47,21 @@ interface OverviewStats {
   total_scans: number;
   pending_payments: number;
   total_revenue_uzs: number;
+  onboarding_stats?: {
+    total_viewed: number;
+    total_started: number;
+    total_completed: number;
+    total_skipped: number;
+    completion_rate_percent: number;
+    categories_viewed?: {
+      health: number;
+      sport: number;
+      life: number;
+      pricing: number;
+      privacy: number;
+    };
+    features_tested?: Record<string, number>;
+  };
 }
 
 interface PaymentItem {
@@ -700,6 +715,83 @@ export function AdminApp() {
                 </div>
               )}
             </div>
+
+            {/* Onboarding Funnel & Interest Analytics */}
+            {stats.onboarding_stats && (
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-blue-400" />
+                    <h3 className="font-black text-base text-white">
+                      Onboarding & Tanishtiruv Voronkasi
+                    </h3>
+                  </div>
+                  <span className="text-xs font-bold text-slate-400">
+                    Konversiya: {stats.onboarding_stats.completion_rate_percent}%
+                  </span>
+                </div>
+
+                {/* Metric Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="bg-slate-800/60 border border-slate-700/60 p-3.5 rounded-2xl">
+                    <div className="text-[11px] font-bold text-slate-400">Ko'rganlar</div>
+                    <div className="text-xl font-black text-white mt-1">
+                      {stats.onboarding_stats.total_viewed}
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-medium">Bosh sahifaga kirgan</div>
+                  </div>
+                  <div className="bg-slate-800/60 border border-slate-700/60 p-3.5 rounded-2xl">
+                    <div className="text-[11px] font-bold text-slate-400">Boshlaganlar</div>
+                    <div className="text-xl font-black text-blue-400 mt-1">
+                      {stats.onboarding_stats.total_started}
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-medium">Tanishtiruvni boshlagan</div>
+                  </div>
+                  <div className="bg-slate-800/60 border border-slate-700/60 p-3.5 rounded-2xl">
+                    <div className="text-[11px] font-bold text-slate-400">Tugatganlar</div>
+                    <div className="text-xl font-black text-emerald-400 mt-1">
+                      {stats.onboarding_stats.total_completed}
+                    </div>
+                    <div className="text-[10px] text-emerald-500/80 font-medium">Platformaga o'tgan</div>
+                  </div>
+                  <div className="bg-slate-800/60 border border-slate-700/60 p-3.5 rounded-2xl">
+                    <div className="text-[11px] font-bold text-slate-400">Skip qilganlar</div>
+                    <div className="text-xl font-black text-amber-400 mt-1">
+                      {stats.onboarding_stats.total_skipped}
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-medium">To'g'ridan-to'g'ri o'tgan</div>
+                  </div>
+                </div>
+
+                {/* Category Breakdown */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                  <div className="bg-slate-800/40 p-3 rounded-2xl border border-slate-800">
+                    <div className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                      <span>🩺 Sog'liq (Health)</span>
+                      <span className="text-blue-400 font-black">
+                        {stats.onboarding_stats.categories_viewed?.health || 0} marta
+                      </span>
+                    </div>
+                  </div>
+                  <div className="bg-slate-800/40 p-3 rounded-2xl border border-slate-800">
+                    <div className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                      <span>🏃 Sport (Sport)</span>
+                      <span className="text-indigo-400 font-black">
+                        {stats.onboarding_stats.categories_viewed?.sport || 0} marta
+                      </span>
+                    </div>
+                  </div>
+                  <div className="bg-slate-800/40 p-3 rounded-2xl border border-slate-800">
+                    <div className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                      <span>🌱 Life (Hayot)</span>
+                      <span className="text-emerald-400 font-black">
+                        {stats.onboarding_stats.categories_viewed?.life || 0} marta
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

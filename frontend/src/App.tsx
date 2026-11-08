@@ -70,6 +70,7 @@ import { HealthAndElderlyModal } from './components/health/HealthAndElderlyModal
 import { FoodScanModal } from './components/food/FoodScanModal';
 import { AlarmMissionModal } from './components/alarm/AlarmMissionModal';
 import { LegalModal, type LegalModalTab } from './components/legal/LegalModal';
+import { WelcomePageModal } from './components/onboarding/WelcomePageModal';
 import { PwaInstallBanner } from './components/common/PwaInstallBanner';
 import { AICoachNotificationBanner } from './components/common/AICoachNotificationBanner';
 import { VitaGoSportView } from './components/sport/VitaGoSportView';
@@ -168,6 +169,11 @@ export const App: React.FC = () => {
   );
   const [legalModalOpen, setLegalModalOpen] = useState(false);
   const [activeLegalTab, setActiveLegalTab] = useState<LegalModalTab>('how_it_works');
+  const [onboardingOpen, setOnboardingOpen] = useState<boolean>(() => {
+    const qOnboarding = new URLSearchParams(window.location.search).get('onboarding');
+    if (qOnboarding === 'true' || qOnboarding === '1') return true;
+    return !localStorage.getItem('vitago_onboarding_completed');
+  });
 
   // Persistent Alarm Settings & Global Background Monitor
   const [alarmTime, setAlarmTime] = useState<string>(() => {
@@ -1405,6 +1411,7 @@ export const App: React.FC = () => {
             onOpenLegalModal={(tab) => openLegalModal(tab)}
             onOpenPlans={() => setPlansModalOpen(true)}
             onLogout={handleLogout}
+            onOpenOnboarding={() => setOnboardingOpen(true)}
             onGoalUpdated={(updated) => setCurrentUser(updated)}
             triggerHaptic={triggerHaptic}
           />
@@ -1616,6 +1623,24 @@ export const App: React.FC = () => {
           setLegalModalOpen(false);
           setPlansModalOpen(true);
         }}
+        onOpenOnboarding={() => setOnboardingOpen(true)}
+      />
+
+      {/* Premium Welcome Page & Interactive Onboarding System */}
+      <WelcomePageModal
+        isOpen={onboardingOpen}
+        onClose={() => setOnboardingOpen(false)}
+        onStartNow={() => {
+          setOnboardingOpen(false);
+          if (!currentUser) {
+            setAuthModalOpen(true);
+          }
+        }}
+        onOpenPlans={() => {
+          setOnboardingOpen(false);
+          setPlansModalOpen(true);
+        }}
+        triggerHaptic={triggerHaptic}
       />
 
       {/* ==================== MEDICATION ALARM MODAL WITH "ICHDIM" BUTTON ==================== */}
