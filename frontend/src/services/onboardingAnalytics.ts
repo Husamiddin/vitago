@@ -14,7 +14,9 @@ export type OnboardingEventType =
   | 'signup_completed'
   | 'onboarding_completed'
   | 'subscription_started'
-  | 'subscription_succeeded';
+  | 'subscription_succeeded'
+  | 'experiment_assigned'
+  | 'experiment_exposed';
 
 export interface OnboardingEventPayload {
   session_id?: string;
@@ -23,6 +25,7 @@ export interface OnboardingEventPayload {
   feature_id?: string;
   step_index?: number;
   platform?: 'web' | 'telegram' | 'mobile';
+  variant?: string;
   timestamp?: string;
 }
 
@@ -186,12 +189,13 @@ export function trackOnboardingEvent(
     category?: 'health' | 'sport' | 'life' | 'pricing' | 'privacy';
     feature_id?: string;
     step_index?: number;
+    variant?: string;
   }
 ): void {
   const sessionId = getOrCreateSessionId();
 
   // Client-side Deduplication key
-  const dedupKey = `${sessionId}_${event}_${meta?.category || ''}_${meta?.feature_id || ''}_${meta?.step_index ?? ''}`;
+  const dedupKey = `${sessionId}_${event}_${meta?.category || ''}_${meta?.feature_id || ''}_${meta?.step_index ?? ''}_${meta?.variant || ''}`;
   const now = Date.now();
   const lastFired = recentEventsCache.get(dedupKey);
   if (lastFired && now - lastFired < 3000) {
@@ -213,6 +217,7 @@ export function trackOnboardingEvent(
     category: meta?.category,
     feature_id: meta?.feature_id,
     step_index: meta?.step_index,
+    variant: meta?.variant,
     platform,
     timestamp: new Date().toISOString(),
   };

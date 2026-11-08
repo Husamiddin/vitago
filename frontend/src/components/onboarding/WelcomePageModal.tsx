@@ -34,6 +34,11 @@ import {
   clearSavedOnboardingState,
 } from '../../services/onboardingAnalytics';
 import {
+  getWelcomeHeadlineVariant,
+  trackExperimentExposure,
+  WELCOME_HEADLINE_EXPERIMENT,
+} from '../../services/experimentService';
+import {
   FeaturePreviewModal,
   type FeaturePreviewData,
 } from './FeaturePreviewModal';
@@ -346,11 +351,15 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
   // Feature preview modal state
   const [selectedFeature, setSelectedFeature] = useState<FeaturePreviewData | null>(null);
 
+  // A/B Experiment: Welcome headline variant (v1)
+  const variant = getWelcomeHeadlineVariant();
+
   useEffect(() => {
     if (isOpen) {
-      trackOnboardingEvent('onboarding_viewed');
+      trackExperimentExposure(WELCOME_HEADLINE_EXPERIMENT.id, variant);
+      trackOnboardingEvent('onboarding_viewed', { variant });
     }
-  }, [isOpen]);
+  }, [isOpen, variant]);
 
   if (!isOpen) return null;
 
@@ -358,6 +367,7 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
     triggerHaptic?.('light');
     trackOnboardingEvent('onboarding_started', {
       step_index: initialStep,
+      variant,
     });
     setCurrentStep(initialStep);
     setMode('walkthrough');
@@ -368,6 +378,7 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
     triggerHaptic?.('light');
     trackOnboardingEvent('onboarding_skipped', {
       step_index: currentStep,
+      variant,
     });
     clearSavedOnboardingState();
     markOnboardingCompleted(true);
@@ -376,7 +387,9 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
 
   const handleCompleteAndStart = () => {
     triggerHaptic?.('success');
-    trackOnboardingEvent('onboarding_completed');
+    trackOnboardingEvent('onboarding_completed', {
+      variant,
+    });
     clearSavedOnboardingState();
     markOnboardingCompleted(true);
     onClose();
@@ -477,16 +490,26 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
                 VitaGo — Health • Sport • Life
               </div>
 
-              <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
-                Sog‘lom hayotingiz sari <br />
-                <span className="bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  aqlli qadam.
-                </span>
-              </h1>
+              {variant === 'B' ? (
+                <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+                  Sog‘liq, sport va kundalik odatlar — <br />
+                  <span className="bg-linear-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                    bitta joyda.
+                  </span>
+                </h1>
+              ) : (
+                <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+                  Sog‘lom hayotingiz sari <br />
+                  <span className="bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    aqlli qadam.
+                  </span>
+                </h1>
+              )}
 
               <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto font-medium leading-relaxed">
-                Sog‘lig‘ingizni nazorat qiling, sport natijalaringizni kuzating va kundalik
-                hayotingizni bitta aqlli platformada boshqaring.
+                {variant === 'B'
+                  ? 'Ortiqcha ilovalarsiz: salomatlik monitoringi, mashg‘ulotlar va sog‘lom turmush tarzingiz yagona aqlli tizimda.'
+                  : 'Sog‘lig‘ingizni nazorat qiling, sport natijalaringizni kuzating va kundalik hayotingizni bitta aqlli platformada boshqaring.'}
               </p>
             </div>
 

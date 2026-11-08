@@ -85,6 +85,39 @@ interface OnboardingGrowthAnalytics {
   };
 }
 
+interface ExperimentVariantSummary {
+  variant: 'A' | 'B';
+  label: string;
+  headline: string;
+  exposures: number;
+  starters: number;
+  completers: number;
+  skippers: number;
+  signups: number;
+  start_rate_percent: number;
+  completion_rate_percent: number;
+  skip_rate_percent: number;
+  signup_rate_percent: number;
+}
+
+interface ExperimentSummary {
+  experiment_id: string;
+  name: string;
+  status: 'running' | 'paused';
+  min_sample_size: number;
+  has_sufficient_data: boolean;
+  is_significant: boolean;
+  winner: 'A' | 'B' | null;
+  lift_percent: number;
+  p_value: number | null;
+  confidence_percent: number | null;
+  status_text: string;
+  variants: {
+    A: ExperimentVariantSummary;
+    B: ExperimentVariantSummary;
+  };
+}
+
 interface OverviewStats {
   total_users: number;
   standard_users: number;
@@ -203,6 +236,11 @@ export function AdminApp() {
   const [growthAnalytics, setGrowthAnalytics] = useState<OnboardingGrowthAnalytics | null>(null);
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
 
+  // A/B Testing State (Phase 4)
+  const [experimentData, setExperimentData] = useState<ExperimentSummary | null>(null);
+  const [isLoadingExperiment, setIsLoadingExperiment] = useState(false);
+  const [isUpdatingExperiment, setIsUpdatingExperiment] = useState(false);
+
   // Club creation form state
   const [clubName, setClubName] = useState('');
   const [clubDesc, setClubDesc] = useState('');
@@ -283,17 +321,56 @@ export function AdminApp() {
     }
   }, [token, apiHeaders]);
 
+  const fetchExperimentData = useCallback(async () => {
+    if (!token) return;
+    setIsLoadingExperiment(true);
+    try {
+      const res = await fetch(`${DEFAULT_API_BASE}/analytics/experiments`, {
+        headers: apiHeaders(),
+      });
+      if (res.ok) {
+        setExperimentData(await res.json());
+      }
+    } catch (err) {
+      console.error('Failed to load experiment data:', err);
+    } finally {
+      setIsLoadingExperiment(false);
+    }
+  }, [token, apiHeaders]);
+
+  const toggleExperimentStatus = async () => {
+    if (!token || !experimentData || isUpdatingExperiment) return;
+    setIsUpdatingExperiment(true);
+    const newAction = experimentData.status === 'running' ? 'pause' : 'resume';
+    try {
+      const res = await fetch(`${DEFAULT_API_BASE}/analytics/experiments/${experimentData.experiment_id}/action`, {
+        method: 'POST',
+        headers: apiHeaders(),
+        body: JSON.stringify({ action: newAction }),
+      });
+      if (res.ok) {
+        await fetchExperimentData();
+      }
+    } catch (err) {
+      console.error('Failed to toggle experiment:', err);
+    } finally {
+      setIsUpdatingExperiment(false);
+    }
+  };
+
   useEffect(() => {
     if (token) {
       fetchAllData();
       fetchGrowthAnalytics(analyticsPeriod);
+      fetchExperimentData();
       const interval = setInterval(() => {
         fetchAllData();
         fetchGrowthAnalytics(analyticsPeriod);
+        fetchExperimentData();
       }, 15000);
       return () => clearInterval(interval);
     }
-  }, [token, analyticsPeriod, fetchAllData, fetchGrowthAnalytics]);
+  }, [token, analyticsPeriod, fetchAllData, fetchGrowthAnalytics, fetchExperimentData]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1131,6 +1208,204 @@ export function AdminApp() {
                     {growthAnalytics?.retention?.active_registered_users ?? (stats?.total_users || 0)}
                   </div>
                   <div className="text-[10px] text-slate-500 font-medium">Haqiqiy faol akkauntlar</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 5. A/B TESTING EXPERIMENTS (PHASE 4) */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 font-black text-xs">
+                    A/B
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                      5. A/B Tajriba: Welcome Page Asosiy Sarlavha
+                      <span
+                        className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider border ${
+                          experimentData?.status === 'running'
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                            : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                        }`}
+                      >
+                        {experimentData?.status === 'running' ? '● Faol (Running)' : '⏸ To‘xtatilgan'}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5 font-medium">
+                      Eksperiment ID: <code className="text-purple-300 font-mono">welcome_headline_v1</code> (50/50 taqsimot)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={toggleExperimentStatus}
+                    disabled={isUpdatingExperiment || !experimentData}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer border flex items-center gap-1.5 ${
+                      experimentData?.status === 'running'
+                        ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/30'
+                        : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                    }`}
+                  >
+                    {experimentData?.status === 'running' ? 'To‘xtatish (Pause)' : 'Faollashtirish (Resume)'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={fetchExperimentData}
+                    disabled={isLoadingExperiment}
+                    className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer border border-slate-700/60"
+                    title="Yangilash"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isLoadingExperiment ? 'animate-spin text-purple-400' : ''}`} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Statistical Significance Alert Banner */}
+              <div
+                className={`p-4 rounded-2xl border flex items-start gap-3 ${
+                  experimentData?.is_significant
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                    : experimentData?.has_sufficient_data
+                    ? 'bg-blue-500/10 border-blue-500/30 text-blue-300'
+                    : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                }`}
+              >
+                <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800/80 shrink-0">
+                  {experimentData?.is_significant ? (
+                    <Sparkles className="h-4 w-4 text-emerald-400" />
+                  ) : (
+                    <Clock className="h-4 w-4 text-amber-400" />
+                  )}
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="font-black text-xs uppercase tracking-wider flex items-center justify-between">
+                    <span>
+                      {experimentData?.is_significant
+                        ? `G'olib aniqlandi: Variant ${experimentData.winner} (+${experimentData.lift_percent}% o'sish)`
+                        : experimentData?.has_sufficient_data
+                        ? 'Statistik farq yetarli emas'
+                        : "Yetarli ma'lumot yo'q — tajriba davom etmoqda"}
+                    </span>
+                    {experimentData?.p_value !== null && (
+                      <span className="text-[11px] font-mono text-slate-400">
+                        p-qiymat: {experimentData?.p_value} ({experimentData?.confidence_percent}% ishonch)
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-300 font-medium">
+                    {experimentData?.status_text || "Ma'lumotlar yuklanmoqda..."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Comparison Cards / Table */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Variant A (Control) */}
+                <div className="bg-slate-800/50 border border-slate-800 p-5 rounded-2xl space-y-3 relative overflow-hidden">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-blue-400"></span>
+                      Variant A (Control)
+                    </span>
+                    <span className="text-[11px] font-mono text-slate-400">
+                      Namuna: {experimentData?.variants.A.exposures || 0} / 50
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-200 font-bold">
+                    "{experimentData?.variants.A.headline || 'Sog‘lom hayotingiz sari aqlli qadam.'}"
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 pt-1 text-center">
+                    <div className="bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/60">
+                      <div className="text-[10px] text-slate-400 font-bold">Ko'rishlar</div>
+                      <div className="text-base font-black text-white mt-0.5">
+                        {experimentData?.variants.A.exposures || 0}
+                      </div>
+                    </div>
+                    <div className="bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/60">
+                      <div className="text-[10px] text-slate-400 font-bold">Boshlaganlar</div>
+                      <div className="text-base font-black text-blue-400 mt-0.5">
+                        {experimentData?.variants.A.starters || 0}
+                      </div>
+                    </div>
+                    <div className="bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/60">
+                      <div className="text-[10px] text-slate-400 font-bold">Start Rate</div>
+                      <div className="text-base font-black text-emerald-400 mt-0.5">
+                        {experimentData?.variants.A.start_rate_percent || 0}%
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="space-y-1 pt-1">
+                    <div className="flex justify-between text-[10px] font-bold text-slate-400">
+                      <span>Start Konversiyasi</span>
+                      <span>{experimentData?.variants.A.start_rate_percent || 0}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, experimentData?.variants.A.start_rate_percent || 0)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Variant B (Challenger) */}
+                <div className="bg-slate-800/50 border border-slate-800 p-5 rounded-2xl space-y-3 relative overflow-hidden">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
+                      Variant B (Challenger)
+                    </span>
+                    <span className="text-[11px] font-mono text-slate-400">
+                      Namuna: {experimentData?.variants.B.exposures || 0} / 50
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-200 font-bold">
+                    "{experimentData?.variants.B.headline || 'Sog‘liq, sport va kundalik odatlar — bitta joyda.'}"
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 pt-1 text-center">
+                    <div className="bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/60">
+                      <div className="text-[10px] text-slate-400 font-bold">Ko'rishlar</div>
+                      <div className="text-base font-black text-white mt-0.5">
+                        {experimentData?.variants.B.exposures || 0}
+                      </div>
+                    </div>
+                    <div className="bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/60">
+                      <div className="text-[10px] text-slate-400 font-bold">Boshlaganlar</div>
+                      <div className="text-base font-black text-emerald-400 mt-0.5">
+                        {experimentData?.variants.B.starters || 0}
+                      </div>
+                    </div>
+                    <div className="bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/60">
+                      <div className="text-[10px] text-slate-400 font-bold">Start Rate</div>
+                      <div className="text-base font-black text-emerald-400 mt-0.5">
+                        {experimentData?.variants.B.start_rate_percent || 0}%
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="space-y-1 pt-1">
+                    <div className="flex justify-between text-[10px] font-bold text-slate-400">
+                      <span>Start Konversiyasi</span>
+                      <span>{experimentData?.variants.B.start_rate_percent || 0}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, experimentData?.variants.B.start_rate_percent || 0)}%` }}
+                      ></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
