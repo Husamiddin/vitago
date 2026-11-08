@@ -29,6 +29,9 @@ import {
 import {
   trackOnboardingEvent,
   markOnboardingCompleted,
+  getSavedOnboardingState,
+  saveOnboardingState,
+  clearSavedOnboardingState,
 } from '../../services/onboardingAnalytics';
 import {
   FeaturePreviewModal,
@@ -332,9 +335,14 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
   triggerHaptic,
 }) => {
   // Mode: 'welcome' (Hero Screen) or 'walkthrough' (Step-by-step Interactive Tour)
-  const [mode, setMode] = useState<'welcome' | 'walkthrough'>('welcome');
+  // Restores state if visitor previously closed browser mid-tour (Scenario F)
+  const [mode, setMode] = useState<'welcome' | 'walkthrough'>(() => {
+    return getSavedOnboardingState().mode;
+  });
   // Walkthrough steps: 0=Health, 1=Sport, 2=Life, 3=Pricing, 4=Privacy
-  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [currentStep, setCurrentStep] = useState<number>(() => {
+    return getSavedOnboardingState().stepIndex;
+  });
   // Feature preview modal state
   const [selectedFeature, setSelectedFeature] = useState<FeaturePreviewData | null>(null);
 
@@ -353,6 +361,7 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
     });
     setCurrentStep(initialStep);
     setMode('walkthrough');
+    saveOnboardingState('walkthrough', initialStep);
   };
 
   const handleSkip = () => {
@@ -360,6 +369,7 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
     trackOnboardingEvent('onboarding_skipped', {
       step_index: currentStep,
     });
+    clearSavedOnboardingState();
     markOnboardingCompleted(true);
     onClose();
   };
@@ -367,6 +377,7 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
   const handleCompleteAndStart = () => {
     triggerHaptic?.('success');
     trackOnboardingEvent('onboarding_completed');
+    clearSavedOnboardingState();
     markOnboardingCompleted(true);
     onClose();
     onStartNow();
@@ -386,6 +397,7 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
       step_index: newStep,
     });
     setCurrentStep(newStep);
+    saveOnboardingState('walkthrough', newStep);
   };
 
   const handleOpenFeature = (feature: FeaturePreviewData) => {
@@ -433,6 +445,7 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
                 type="button"
                 onClick={() => {
                   triggerHaptic?.('light');
+                  saveOnboardingState('welcome', 0);
                   setMode('welcome');
                 }}
                 className="px-2.5 py-1 text-[11px] font-bold text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition cursor-pointer"

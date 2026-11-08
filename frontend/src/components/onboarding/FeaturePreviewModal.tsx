@@ -228,9 +228,12 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
             {feature.demoType === 'prescription_scanner' && (
               <div className="space-y-3">
                 <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
-                  <div className="text-[11px] font-bold text-slate-400">Namunaviy retsept (Ko'rgazmali demo):</div>
-                  <div className="font-serif italic text-sm text-slate-800 mt-0.5">
-                    "Nurofen 400mg №12 (Ibuprofen) — 1 tabletka og'riqda, ovqatdan so'ng"
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-400">
+                    <span>Ko'rgazmali ta'limiy namuna:</span>
+                    <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">Namunaviy ma'lumot</span>
+                  </div>
+                  <div className="font-serif italic text-sm text-slate-800 mt-1">
+                    "Nurofen 400mg №12 (tabletka) — 1 tabletka zaruratda, ovqatdan so'ng"
                   </div>
                 </div>
 
@@ -244,37 +247,33 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
                     className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md shadow-blue-500/20"
                   >
                     <Scan className="h-4 w-4" />
-                    Skanerlash namunasini ko'rish
+                    Ta'limiy tahlil namunasini ko'rish
                   </button>
                 ) : (
                   <div className="space-y-2.5 animate-in fade-in duration-300">
-                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2">
-                      <div className="flex items-center justify-between text-xs font-black text-emerald-900">
-                        <span>Brend dori: Nurofen 400mg</span>
-                        <span className="text-slate-500 line-through">42 000 so'm</span>
+                    <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-black text-blue-950">
+                        <span>Namunaviy brend dori: Nurofen 400mg</span>
+                        <span className="text-slate-500 font-semibold text-[11px]">~42 000 so'm (o'rtacha)</span>
                       </div>
-                      <div className="p-2.5 rounded-lg bg-white border border-emerald-300 flex items-center justify-between">
-                        <div>
+                      <div className="p-2.5 rounded-lg bg-white border border-blue-200 space-y-1.5">
+                        <div className="flex items-center justify-between">
                           <div className="text-xs font-black text-slate-900">
-                            Rasmiy generik analog: Ibuprofen 400mg
+                            Xuddi shu faol moddali dori: Ibuprofen 400mg
                           </div>
-                          <div className="text-[10px] text-emerald-700 font-bold">
-                            Faol modda: 100% bir xil (Ibuprofen 400mg)
-                          </div>
+                          <div className="text-xs font-black text-blue-700">~12 000 so'm</div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-xs font-black text-emerald-700">12 000 so'm</div>
-                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded-sm bg-emerald-600 text-white">
-                            -71% tejash
-                          </span>
+                        <div className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                          Asosiy faol modda va dozasi: <strong>Ibuprofen (400 mg)</strong>.
+                          Yordamchi moddalar, qobiq tarkibi va ishlab chiqaruvchi texnologiyasi farq qilishi mumkin.
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-1.5 text-[10px] text-amber-800 font-semibold leading-relaxed">
-                      <AlertTriangle className="h-3.5 w-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-2 text-[10px] text-amber-900 font-medium leading-relaxed">
+                      <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
                       <span>
-                        <strong>Tibbiy xavfsizlik:</strong> Ushbu demo namunaviy hisoblanadi. Hech qachon dori vositasi yoki dozasini davolovchi shifokor yoki farmatsevt maslahatisiz mustaqil o'zgartirmang.
+                        <strong>Muhim tibbiy ogohlantirish:</strong> Bir xil faol modda mavjudligi dorilarning to'liq biologik ekvivalentligini kafolatlamaydi. Ushbu ma'lumot faqat umumiy axborot va ta'lim maqsadida taqdim etiladi. Hech qachon dori vositasini mustaqil ravishda almashtirmang — har qanday o'zgartirishdan oldin shifokor yoki farmatsevt bilan maslahatlashing.
                       </span>
                     </div>
 
@@ -283,7 +282,7 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
                       onClick={() => setDemoPrescriptionScanned(false)}
                       className="text-[11px] text-slate-400 hover:text-slate-600 font-bold flex items-center gap-1 mx-auto cursor-pointer"
                     >
-                      <RotateCcw className="h-3 w-3" /> Qayta sinash
+                      <RotateCcw className="h-3 w-3" /> Qayta ko'rish
                     </button>
                   </div>
                 )}

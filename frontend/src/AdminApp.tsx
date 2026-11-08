@@ -38,6 +38,53 @@ const DEFAULT_API_BASE =
     ? '/api/v1'
     : 'https://doriscan.vercel.app/api/v1';
 
+interface OnboardingGrowthAnalytics {
+  period: string;
+  total_viewed: number;
+  total_started: number;
+  total_completed: number;
+  total_skipped: number;
+  completion_rate_percent: number;
+  acquisition: {
+    unique_visitors: number;
+    unique_started: number;
+    unique_completed: number;
+    unique_skipped: number;
+    start_rate_percent: number;
+    completion_rate_percent: number;
+    skip_rate_percent: number;
+    abandonment_rate_percent: number;
+  };
+  funnel: {
+    welcome_visitors: number;
+    onboarding_starters: number;
+    onboarding_completers: number;
+    pricing_viewers: number;
+    signups_started: number;
+    signups_completed: number;
+    subscription_starters: number;
+    confirmed_paying_users: number;
+  };
+  categories_viewed: {
+    health: number;
+    sport: number;
+    life: number;
+    pricing: number;
+    privacy: number;
+  };
+  top_opened_features: Array<{ feature_id: string; count: number }>;
+  top_completed_demos: Array<{ feature_id: string; count: number }>;
+  step_dropoff: Record<string, number>;
+  platforms: Record<string, number>;
+  retention: {
+    has_sufficient_data: boolean;
+    d1_retention_percent?: number | null;
+    d7_retention_percent?: number | null;
+    active_registered_users?: number;
+    status_text: string;
+  };
+}
+
 interface OverviewStats {
   total_users: number;
   standard_users: number;
@@ -141,7 +188,7 @@ export function AdminApp() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'payments' | 'users' | 'clubs' | 'notifications' | 'scans'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'payments' | 'users' | 'clubs' | 'notifications' | 'scans'>('overview');
 
   const [stats, setStats] = useState<OverviewStats | null>(null);
   const [payments, setPayments] = useState<PaymentItem[]>([]);
@@ -150,6 +197,11 @@ export function AdminApp() {
   const [clubs, setClubs] = useState<ClubItem[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Growth Analytics State (Phase 3)
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<'today' | '7d' | '30d' | 'all'>('7d');
+  const [growthAnalytics, setGrowthAnalytics] = useState<OnboardingGrowthAnalytics | null>(null);
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
 
   // Club creation form state
   const [clubName, setClubName] = useState('');
@@ -214,13 +266,34 @@ export function AdminApp() {
     }
   }, [token, apiHeaders]);
 
+  const fetchGrowthAnalytics = useCallback(async (period: 'today' | '7d' | '30d' | 'all') => {
+    if (!token) return;
+    setIsLoadingAnalytics(true);
+    try {
+      const res = await fetch(`${DEFAULT_API_BASE}/admin/onboarding-stats?period=${period}`, {
+        headers: apiHeaders(),
+      });
+      if (res.ok) {
+        setGrowthAnalytics(await res.json());
+      }
+    } catch (err) {
+      console.error('Failed to load growth analytics:', err);
+    } finally {
+      setIsLoadingAnalytics(false);
+    }
+  }, [token, apiHeaders]);
+
   useEffect(() => {
     if (token) {
       fetchAllData();
-      const interval = setInterval(fetchAllData, 15000);
+      fetchGrowthAnalytics(analyticsPeriod);
+      const interval = setInterval(() => {
+        fetchAllData();
+        fetchGrowthAnalytics(analyticsPeriod);
+      }, 15000);
       return () => clearInterval(interval);
     }
-  }, [token, fetchAllData]);
+  }, [token, analyticsPeriod, fetchAllData, fetchGrowthAnalytics]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -507,6 +580,7 @@ export function AdminApp() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex gap-2 border-t border-slate-800/60 overflow-x-auto">
           {[
             { id: 'overview', label: 'Boshqaruv', icon: TrendingUp },
+            { id: 'analytics', label: 'Onboarding & Funnel', icon: Sparkles },
             {
               id: 'payments',
               label: "To'lovlar",
@@ -792,6 +866,274 @@ export function AdminApp() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ONBOARDING & GROWTH ANALYTICS TAB (PHASE 3) */}
+        {activeTab === 'analytics' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* Top Bar with Period Filter */}
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 p-4 rounded-3xl">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-blue-400" />
+                  <h2 className="text-lg font-black text-white">
+                    Onboarding & Konversiya Voronkasi
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5 font-medium">
+                  Haqiqiy SQL telemetriya va foydalanuvchilar qiziqishi tahlili
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Period Filter Pills */}
+                <div className="inline-flex rounded-xl bg-slate-800/80 p-1 border border-slate-700/60 text-xs font-bold">
+                  {(
+                    [
+                      { id: 'today', label: 'Bugun' },
+                      { id: '7d', label: '7 kun' },
+                      { id: '30d', label: '30 kun' },
+                      { id: 'all', label: 'Barchasi' },
+                    ] as const
+                  ).map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => {
+                        setAnalyticsPeriod(p.id);
+                        fetchGrowthAnalytics(p.id);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg transition cursor-pointer text-xs font-black ${
+                        analyticsPeriod === p.id
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => fetchGrowthAnalytics(analyticsPeriod)}
+                  disabled={isLoadingAnalytics}
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer border border-slate-700/60"
+                  title="Yangilash"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoadingAnalytics ? 'animate-spin text-blue-400' : ''}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* 1. ACQUISITION & ONBOARDING KPIS */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-blue-400" />
+                  1. Tashriflar va Onboarding Ko'rsatkichlari (Yakka sessiyalar)
+                </h3>
+                <span className="text-xs font-bold text-slate-400">
+                  Deduplikatsiya qilingan haqiqiy sessiyalar
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <div className="bg-slate-800/50 border border-slate-800 p-4 rounded-2xl">
+                  <div className="text-[11px] font-bold text-slate-400">Yakka Tashrifchilar</div>
+                  <div className="text-2xl font-black text-white mt-1">
+                    {growthAnalytics?.acquisition?.unique_visitors ?? (stats?.onboarding_stats?.total_viewed || 0)}
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium">Sessiya identifikatori bilan</div>
+                </div>
+
+                <div className="bg-slate-800/50 border border-slate-800 p-4 rounded-2xl">
+                  <div className="text-[11px] font-bold text-slate-400">Boshlash Darajasi</div>
+                  <div className="text-2xl font-black text-blue-400 mt-1">
+                    {growthAnalytics?.acquisition?.start_rate_percent ?? 0}%
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium">Tanishtiruvni boshlagan</div>
+                </div>
+
+                <div className="bg-slate-800/50 border border-slate-800 p-4 rounded-2xl">
+                  <div className="text-[11px] font-bold text-slate-400">Yakunlash Darajasi</div>
+                  <div className="text-2xl font-black text-emerald-400 mt-1">
+                    {growthAnalytics?.acquisition?.completion_rate_percent ?? (stats?.onboarding_stats?.completion_rate_percent || 0)}%
+                  </div>
+                  <div className="text-[10px] text-emerald-500/80 font-medium">Barcha qadamlardan o'tgan</div>
+                </div>
+
+                <div className="bg-slate-800/50 border border-slate-800 p-4 rounded-2xl">
+                  <div className="text-[11px] font-bold text-slate-400">Skip Darajasi</div>
+                  <div className="text-2xl font-black text-amber-400 mt-1">
+                    {growthAnalytics?.acquisition?.skip_rate_percent ?? 0}%
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium">O'tkazib yuborgan</div>
+                </div>
+
+                <div className="bg-slate-800/50 border border-slate-800 p-4 rounded-2xl col-span-2 sm:col-span-1">
+                  <div className="text-[11px] font-bold text-slate-400">Tark Etish (Abandon)</div>
+                  <div className="text-2xl font-black text-rose-400 mt-1">
+                    {growthAnalytics?.acquisition?.abandonment_rate_percent ?? 0}%
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium">Tugallanmagan sessiyalar</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. CONVERSION FUNNEL */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-emerald-400" />
+                  2. Bosqichma-bosqich Konversiya Voronkasi
+                </h3>
+                <span className="text-xs font-bold text-emerald-400">
+                  Welcome ➔ To'lov Tasdiqlanishi
+                </span>
+              </div>
+
+              {(() => {
+                const f = growthAnalytics?.funnel || {
+                  welcome_visitors: stats?.onboarding_stats?.total_viewed || 1,
+                  onboarding_starters: stats?.onboarding_stats?.total_started || 0,
+                  onboarding_completers: stats?.onboarding_stats?.total_completed || 0,
+                  pricing_viewers: stats?.onboarding_stats?.categories_viewed?.pricing || 0,
+                  signups_started: 0,
+                  signups_completed: stats?.total_users || 0,
+                  subscription_starters: stats?.pending_payments || 0,
+                  confirmed_paying_users: (stats?.premium_users || 0) + (stats?.ultra_users || 0),
+                };
+                const base = Math.max(1, f.welcome_visitors);
+
+                const funnelSteps = [
+                  { label: "1. Welcome sahifasiga tashrif", value: f.welcome_visitors, color: "bg-blue-500" },
+                  { label: "2. Onboarding boshlaganlar", value: f.onboarding_starters, color: "bg-indigo-500" },
+                  { label: "3. Onboarding yakunlaganlar", value: f.onboarding_completers, color: "bg-teal-500" },
+                  { label: "4. Tariflar sahifasini ko'rganlar", value: f.pricing_viewers, color: "bg-amber-500" },
+                  { label: "5. Ro'yxatdan o'tganlar", value: f.signups_completed, color: "bg-emerald-500" },
+                  { label: "6. To'lov arizasini topshirganlar", value: f.subscription_starters, color: "bg-purple-500" },
+                  { label: "7. Tasdiqlangan to'lovchilar (Rasmiy)", value: f.confirmed_paying_users, color: "bg-emerald-400" },
+                ];
+
+                return (
+                  <div className="space-y-3 pt-1">
+                    {funnelSteps.map((step, idx) => {
+                      const pct = Math.min(100, Math.round((step.value / base) * 100));
+                      return (
+                        <div key={idx} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs font-bold">
+                            <span className="text-slate-300">{step.label}</span>
+                            <span className="text-white font-mono font-black">
+                              {step.value} ta <span className="text-slate-500 text-[10px]">({pct}%)</span>
+                            </span>
+                          </div>
+                          <div className="w-full h-3 rounded-full bg-slate-800 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${step.color} transition-all duration-500`}
+                              style={{ width: `${Math.max(4, pct)}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* 3. FEATURE ENGAGEMENT & INTEREST */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Category Breakdown */}
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4">
+                <h3 className="text-sm font-black text-white flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-amber-400" />
+                  Kategoriyalar bo'yicha qiziqish
+                </h3>
+                <div className="space-y-2.5">
+                  {[
+                    { label: "🩺 Sog'liq (Health)", val: growthAnalytics?.categories_viewed?.health ?? (stats?.onboarding_stats?.categories_viewed?.health || 0), color: "text-blue-400" },
+                    { label: "🏃 Sport (Sport)", val: growthAnalytics?.categories_viewed?.sport ?? (stats?.onboarding_stats?.categories_viewed?.sport || 0), color: "text-indigo-400" },
+                    { label: "🌱 Life (Hayot)", val: growthAnalytics?.categories_viewed?.life ?? (stats?.onboarding_stats?.categories_viewed?.life || 0), color: "text-emerald-400" },
+                    { label: "💎 Tariflar (Pricing)", val: growthAnalytics?.categories_viewed?.pricing ?? (stats?.onboarding_stats?.categories_viewed?.pricing || 0), color: "text-purple-400" },
+                    { label: "🛡️ Maxfiylik (Privacy)", val: growthAnalytics?.categories_viewed?.privacy ?? (stats?.onboarding_stats?.categories_viewed?.privacy || 0), color: "text-slate-400" },
+                  ].map((c, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-800/40 border border-slate-800 text-xs font-bold">
+                      <span className="text-slate-300">{c.label}</span>
+                      <span className={`font-black ${c.color}`}>{c.val} marta</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Top Opened Demos */}
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4">
+                <h3 className="text-sm font-black text-white flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-emerald-400" />
+                  Eng ko'p sinab ko'rilgan imkoniyatlar
+                </h3>
+                {growthAnalytics?.top_opened_features && growthAnalytics.top_opened_features.length > 0 ? (
+                  <div className="space-y-2">
+                    {growthAnalytics.top_opened_features.map((feat, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/40 border border-slate-800 text-xs">
+                        <span className="text-slate-300 font-bold truncate max-w-[200px]">
+                          {idx + 1}. {feat.feature_id.replace(/_/g, ' ')}
+                        </span>
+                        <span className="font-black text-emerald-400">{feat.count} ochilgan</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-slate-500 text-xs font-medium bg-slate-800/20 rounded-2xl">
+                    Hozircha imkoniyatlar testi qayd etilmagan
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 4. RETENTION & COHORT HEALTH */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-indigo-400" />
+                  4. Foydalanuvchilar Saqlanishi (Retention)
+                </h3>
+                <span className="text-xs font-bold text-slate-400">
+                  {growthAnalytics?.retention?.status_text || "Kamida 7 kunlik faoliyat talab etiladi"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-slate-800/50 border border-slate-800 p-4 rounded-2xl">
+                  <div className="text-[11px] font-bold text-slate-400">1-kunlik qaytish (Day 1)</div>
+                  <div className="text-2xl font-black text-white mt-1">
+                    {growthAnalytics?.retention?.has_sufficient_data && growthAnalytics.retention.d1_retention_percent !== null
+                      ? `${growthAnalytics.retention.d1_retention_percent}%`
+                      : "Yetarli ma'lumot yo'q"}
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium">Ro'yxatdan keyingi kunda kirganlar</div>
+                </div>
+
+                <div className="bg-slate-800/50 border border-slate-800 p-4 rounded-2xl">
+                  <div className="text-[11px] font-bold text-slate-400">7-kunlik qaytish (Day 7)</div>
+                  <div className="text-2xl font-black text-white mt-1">
+                    {growthAnalytics?.retention?.has_sufficient_data && growthAnalytics.retention.d7_retention_percent !== null
+                      ? `${growthAnalytics.retention.d7_retention_percent}%`
+                      : "Yetarli ma'lumot yo'q"}
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium">Bir hafta o'tib faol qolganlar</div>
+                </div>
+
+                <div className="bg-slate-800/50 border border-slate-800 p-4 rounded-2xl">
+                  <div className="text-[11px] font-bold text-slate-400">Jami Ro'yxatdan O'tganlar</div>
+                  <div className="text-2xl font-black text-emerald-400 mt-1">
+                    {growthAnalytics?.retention?.active_registered_users ?? (stats?.total_users || 0)}
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium">Haqiqiy faol akkauntlar</div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
