@@ -1,0 +1,41 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.sqlite
+*.sqlite3
+*.db
+.pytest_cache/
+
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+*.tsbuildinfo
+.vite/
+
+# Vercel
+.vercel/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Scratch & Agent skills cache
+scratch/
+.agents/
+skills-lock.json
+
