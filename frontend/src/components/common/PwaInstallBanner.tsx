@@ -130,7 +130,7 @@ export const PwaInstallBanner: React.FC = () => {
   };
 
   const handleDownloadApk = () => {
-    const appUrl = 'https://doriscan.vercel.app/VitaGo_App.apk?v=20261108';
+    const appUrl = 'https://doriscan.vercel.app/Tetik_App.apk?v=20261108';
     localStorage.setItem('vitago_apk_installed', 'true');
 
     // 1. If in Telegram WebApp, open via openLink in phone's default browser

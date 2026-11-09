@@ -194,7 +194,7 @@ interface NotificationItem {
   created_at?: string | null;
 }
 
-interface VitaGoSportViewProps {
+export interface TetikSportViewProps {
   currentUser: UserProfile | null;
   lang: SupportedLang;
   onLangChange: (lang: SupportedLang) => void;
@@ -205,6 +205,8 @@ interface VitaGoSportViewProps {
   onRequireAuth?: () => void;
   triggerHaptic?: (type?: 'light' | 'success') => void;
 }
+
+export type VitaGoSportViewProps = TetikSportViewProps;
 
 const SPORT_I18N: Record<
   SupportedLang,
@@ -555,7 +557,7 @@ function attachReliableTileLayer(map: L.Map) {
   googleTiles.addTo(map);
 }
 
-export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
+export const TetikSportView: React.FC<TetikSportViewProps> = ({
   currentUser,
   lang,
   onLangChange,
@@ -2685,3 +2687,5 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
     </div>
   );
 };
+
+export const VitaGoSportView = TetikSportView;

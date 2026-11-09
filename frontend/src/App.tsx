@@ -74,7 +74,7 @@ import { WelcomePageModal } from './components/onboarding/WelcomePageModal';
 import { PwaInstallBanner } from './components/common/PwaInstallBanner';
 import { OfflineBanner } from './components/common/OfflineBanner';
 import { AICoachNotificationBanner } from './components/common/AICoachNotificationBanner';
-import { VitaGoSportView } from './components/sport/VitaGoSportView';
+import { TetikSportView } from './components/sport/VitaGoSportView';
 import { HomeDashboardView } from './components/home/HomeDashboardView';
 import { HealthDashboardView } from './components/health/HealthDashboardView';
 import { NutritionView } from './components/food/NutritionView';
@@ -685,7 +685,7 @@ export const App: React.FC = () => {
       }`}
     >
       {activeTab === 'sport' ? (
-        <VitaGoSportView
+        <TetikSportView
           currentUser={currentUser}
           lang={lang}
           onLangChange={handleLangChange}

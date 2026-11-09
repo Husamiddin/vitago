@@ -47,7 +47,7 @@
   animation: scanLaser 2.2s ease-in-out infinite;
 }
 
-@keyframes vitagoFadeUp {
+@keyframes tetikFadeUp {
   0% {
     opacity: 0;
     transform: translateY(8px) scale(0.99);
@@ -60,7 +60,7 @@
 
 .animate-in,
 main > div {
-  animation: vitagoFadeUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: tetikFadeUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 button {

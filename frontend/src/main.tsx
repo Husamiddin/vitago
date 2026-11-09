@@ -15,7 +15,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>
 );
 
-// Register VitaGo Service Worker for PWA Offline functionality
+// Register Tetik Service Worker for PWA Offline functionality
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
