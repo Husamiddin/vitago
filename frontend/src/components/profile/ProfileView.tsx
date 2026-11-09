@@ -98,26 +98,26 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
 
         {/* Name & Plan Badge */}
-        <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
           {name}
         </h2>
         <div className="mt-1 flex items-center gap-1.5">
           {plan === 'ultra' ? (
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-linear-to-r from-amber-400 to-orange-500 text-slate-950 font-black text-xs shadow-xs">
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-linear-to-r from-amber-400 to-orange-500 text-slate-950 font-semibold text-xs shadow-xs">
               <Zap className="h-3 w-3 fill-slate-950" /> Ultra a'zo
             </span>
           ) : plan === 'premium' ? (
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-linear-to-r from-blue-500 to-indigo-600 text-white font-black text-xs shadow-xs">
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-linear-to-r from-teal-500 to-emerald-600 text-white font-semibold text-xs shadow-xs">
               <Crown className="h-3 w-3 fill-white" /> Premium a'zo
             </span>
           ) : (
             <button
               type="button"
               onClick={onOpenPlans}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 transition cursor-pointer"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-semibold text-xs hover:bg-slate-200 transition cursor-pointer"
             >
               <span>Standart a'zo</span>
-              <span className="text-emerald-600 font-extrabold">• Tariflar</span>
+              <span className="text-[#16A68A] font-bold">• Tariflar</span>
             </button>
           )}
         </div>
@@ -274,11 +274,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <Settings className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-xs sm:text-sm font-black text-slate-900">Tilni tanlash</div>
-              <div className="text-[10px] text-slate-400 font-semibold">Ilova interfeysi tili</div>
+              <div className="text-xs sm:text-sm font-semibold text-slate-900">Tilni tanlash</div>
+              <div className="text-[10px] text-slate-400 font-medium">Ilova interfeysi tili</div>
             </div>
           </div>
-          <div className="inline-flex rounded-xl bg-slate-100 p-0.5 text-xs font-bold">
+          <div className="inline-flex rounded-xl bg-slate-100 p-0.5 text-xs font-semibold">
             {(['uz', 'uz_cyrl', 'ru'] as SupportedLang[]).map((l) => (
               <button
                 key={l}
@@ -287,8 +287,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   triggerHaptic?.('light');
                   onChangeLang(l);
                 }}
-                className={`px-2 py-1 rounded-lg transition cursor-pointer text-[11px] font-black ${
-                  lang === l ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+                className={`px-2.5 py-1 rounded-lg transition cursor-pointer text-[11px] font-semibold ${
+                  lang === l ? 'bg-white text-[#16A68A] shadow-xs' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 {l === 'uz' ? "O'z" : l === 'uz_cyrl' ? 'Ўз' : 'Ру'}

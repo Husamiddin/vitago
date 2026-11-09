@@ -1445,55 +1445,57 @@ export const App: React.FC = () => {
 
       {/* Platform Legal access is cleanly inside Profil -> Huquqlar & Shartlar */}
 
-          {/* Mobile & Telegram Mini App Bottom Tab Navigation (Image 1 Style) */}
+          {/* Mobile & Telegram Mini App Apple-Inspired Floating Dock */}
           {isCompactAppLayout && (
-            <nav
-              className={`fixed bottom-0 z-40 border-t border-slate-200/80 bg-white/95 backdrop-blur-md pb-safe w-full max-w-full overflow-hidden shadow-lg ${
-                previewTelegramMode ? 'max-w-md left-1/2 -translate-x-1/2' : 'left-0 right-0'
-              }`}
-            >
-              <div className="grid grid-cols-5 items-center px-1 pt-1.5 pb-1 gap-1">
-                {[
-                  { id: 'home', label: t.navHome, icon: HomeIcon },
-                  { id: 'sport', label: t.navSport, icon: Dumbbell },
-                  { id: 'health', label: t.navHealth, icon: HeartPulse },
-                  { id: 'plans', label: t.navPlans, icon: Sparkles },
-                  { id: 'profile', label: t.navProfile, icon: UserIcon },
-                ].map((tab) => {
-                  const Icon = tab.icon;
-                  const active = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => {
-                        if (tab.id === 'sport') {
-                          handleOpenSport();
-                          return;
-                        }
-                        if (tab.id === 'plans') {
-                          setPlansModalOpen(true);
+            <div className="fixed bottom-0 inset-x-0 z-40 pb-safe pointer-events-none">
+              <nav
+                className={`pointer-events-auto mx-auto mb-2.5 w-[calc(100%-1.25rem)] max-w-md rounded-2xl sm:rounded-3xl apple-glass shadow-[0_12px_40px_-4px_rgba(15,23,42,0.12)] border border-slate-200/70 py-1.5 px-2`}
+              >
+                <div className="grid grid-cols-5 items-center gap-1">
+                  {[
+                    { id: 'home', label: t.navHome, icon: HomeIcon },
+                    { id: 'sport', label: t.navSport, icon: Dumbbell },
+                    { id: 'health', label: t.navHealth, icon: HeartPulse },
+                    { id: 'plans', label: t.navPlans, icon: Sparkles },
+                    { id: 'profile', label: t.navProfile, icon: UserIcon },
+                  ].map((tab) => {
+                    const Icon = tab.icon;
+                    const active = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => {
+                          if (tab.id === 'sport') {
+                            handleOpenSport();
+                            return;
+                          }
+                          if (tab.id === 'plans') {
+                            setPlansModalOpen(true);
+                            triggerHaptic('light');
+                            return;
+                          }
+                          setActiveTab(tab.id as ActiveTab);
                           triggerHaptic('light');
-                          return;
-                        }
-                        setActiveTab(tab.id as ActiveTab);
-                        triggerHaptic('light');
-                      }}
-                      className={`relative flex flex-col items-center justify-center py-1 text-[10px] sm:text-[11px] font-black transition cursor-pointer ${
-                        active
-                          ? 'text-blue-600'
-                          : 'text-slate-400 hover:text-slate-700'
-                      }`}
-                    >
-                      <div className="relative">
-                        <Icon className={`h-5 w-5 ${active ? 'stroke-[2.5] text-blue-600' : ''}`} />
-                      </div>
-                      <span className="mt-0.5 truncate max-w-full font-bold">{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </nav>
+                        }}
+                        className={`relative flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer ${
+                          active
+                            ? 'bg-teal-500/10 text-[#16A68A]'
+                            : 'text-slate-400 hover:text-slate-700 active:bg-slate-100'
+                        }`}
+                      >
+                        <div className="relative">
+                          <Icon className={`h-5 w-5 ${active ? 'stroke-[2.2] text-[#16A68A]' : 'stroke-[1.75]'}`} />
+                        </div>
+                        <span className={`mt-0.5 text-[10px] tracking-tight truncate max-w-full ${active ? 'font-semibold text-slate-800' : 'font-medium text-slate-400'}`}>
+                          {tab.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </nav>
+            </div>
           )}
         </>
       )}

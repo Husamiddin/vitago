@@ -67,6 +67,8 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({
     if (list.length === 0) {
       try {
         const raw =
+          localStorage.getItem('tetik_activities') ||
+          localStorage.getItem('doriscan_activities') ||
           localStorage.getItem('vitago_activities') ||
           localStorage.getItem('vitago_saved_activities_v1');
         if (raw) {
@@ -312,32 +314,64 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({
         </div>
 
         {subTab === 'activity' ? (
-          <div className="space-y-2.5">
-            {[
-              { title: 'Yugurish (Kogon tumani)', dist: '5.2 km', time: '28 min', kcal: '312 kcal', date: 'Bugun, 07:45' },
-              { title: 'Piyoda yurish (Toshkent)', dist: '3.1 km', time: '35 min', kcal: '145 kcal', date: 'Kecha, 18:20' },
-              { title: 'Fitness kardio mashqi', dist: '—', time: '20 min', kcal: '190 kcal', date: '5-noyabr' },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="p-3.5 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-2xs"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-black">
-                    <Activity className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs sm:text-sm font-black text-slate-900">{item.title}</div>
-                    <div className="text-[11px] text-slate-400 font-bold mt-0.5">{item.date}</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs font-black text-blue-600">{item.dist}</div>
-                  <div className="text-[10px] text-slate-400 font-bold">{item.kcal} • {item.time}</div>
-                </div>
+          activities.length === 0 ? (
+            <div className="p-8 rounded-3xl bg-white border border-slate-200/70 text-center space-y-3 apple-card">
+              <div className="h-12 w-12 rounded-2xl bg-teal-50 text-[#16A68A] mx-auto flex items-center justify-center">
+                <Activity className="h-6 w-6 stroke-[1.75]" />
               </div>
-            ))}
-          </div>
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900">Hozircha mashg'ulotlar qayd etilmagan</h3>
+                <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto leading-relaxed">
+                  Sport bo'limiga o'tib piyoda yurish, yugurish yoki velosiped mashg'ulotini boshlang — barcha real masofa, vaqt va sarflangan kaloriya shu yerda to'planadi.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {activities.map((item, i) => {
+                const dateLabel = item.created_at
+                  ? new Date(item.created_at).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'uz-UZ', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : 'Bugun';
+                const sportTitle =
+                  item.sport_type === 'run'
+                    ? 'Yugurish'
+                    : item.sport_type === 'walk'
+                    ? 'Piyoda yurish'
+                    : item.sport_type === 'bike'
+                    ? 'Velosport'
+                    : 'Sport mashg\'uloti';
+                const durationMin = Math.round((item.duration_sec || 0) / 60);
+
+                return (
+                  <div
+                    key={item.id || i}
+                    className="p-3.5 rounded-2xl bg-white border border-slate-200/70 flex items-center justify-between apple-card"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-teal-50 text-[#16A68A] flex items-center justify-center">
+                        <Activity className="h-5 w-5 stroke-[1.75]" />
+                      </div>
+                      <div>
+                        <div className="text-xs sm:text-sm font-semibold text-slate-900">{sportTitle}</div>
+                        <div className="text-[11px] text-slate-400 font-medium mt-0.5">{dateLabel}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs font-bold text-[#16A68A]">{(item.distance_km || 0).toFixed(2)} km</div>
+                      <div className="text-[10px] text-slate-400 font-medium">
+                        {Math.round(item.calories || 0)} kcal • {durationMin} min
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
         ) : (
           <ScanHistoryView
             entries={historyEntries}

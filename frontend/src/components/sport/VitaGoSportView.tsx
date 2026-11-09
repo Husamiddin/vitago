@@ -759,7 +759,7 @@ export const TetikSportView: React.FC<TetikSportViewProps> = ({
     attachReliableTileLayer(map);
 
     const userIcon = L.divIcon({
-      className: 'vitago-svg-user-pin',
+      className: 'tetik-svg-user-pin',
       html: `<div style="position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
         <div style="position:absolute;width:28px;height:28px;border-radius:50%;background:#10b981;opacity:0.25;animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;"></div>
         <div style="position:relative;width:18px;height:18px;border-radius:50%;background:#10b981;border:3px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">
@@ -808,7 +808,7 @@ export const TetikSportView: React.FC<TetikSportViewProps> = ({
 
     if (destPos) {
       const destIcon = L.divIcon({
-        className: 'vitago-svg-finish-pin',
+        className: 'tetik-svg-finish-pin',
         html: `<div style="position:relative;width:30px;height:38px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35));">
           <svg width="30" height="38" viewBox="0 0 32 38" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M16 0C7.163 0 0 7.163 0 16c0 11.2 14.4 20.8 15.2 21.333a1.4 1.4 0 0 0 1.6 0C17.6 36.8 32 27.2 32 16c0-8.837-7.163-16-16-16z" fill="#ef4444"/>
@@ -867,7 +867,7 @@ export const TetikSportView: React.FC<TetikSportViewProps> = ({
     attachReliableTileLayer(rMap);
 
     const uIcon = L.divIcon({
-      className: 'vitago-svg-rec-user-pin',
+      className: 'tetik-svg-rec-user-pin',
       html: `<div style="position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
         <div style="position:absolute;width:28px;height:28px;border-radius:50%;background:#ea580c;opacity:0.3;animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;"></div>
         <div style="position:relative;width:18px;height:18px;border-radius:50%;background:#ea580c;border:3px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">
@@ -933,7 +933,7 @@ export const TetikSportView: React.FC<TetikSportViewProps> = ({
 
     if (destPos) {
       const destIcon = L.divIcon({
-        className: 'vitago-svg-rec-dest-pin',
+        className: 'tetik-svg-rec-dest-pin',
         html: `<div style="position:relative;width:30px;height:38px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35));">
           <svg width="30" height="38" viewBox="0 0 32 38" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M16 0C7.163 0 0 7.163 0 16c0 11.2 14.4 20.8 15.2 21.333a1.4 1.4 0 0 0 1.6 0C17.6 36.8 32 27.2 32 16c0-8.837-7.163-16-16-16z" fill="#2563eb"/>
@@ -2624,10 +2624,10 @@ export const TetikSportView: React.FC<TetikSportViewProps> = ({
             >
               📍 Yoqish
             </button>
-            {typeof window !== 'undefined' && Boolean((window as any)?.VitaGoNative?.openAppSettings) && (
+            {typeof window !== 'undefined' && Boolean((window as any)?.TetikNative?.openAppSettings || (window as any)?.VitaGoNative?.openAppSettings) && (
               <button
                 type="button"
-                onClick={() => (window as any).VitaGoNative.openAppSettings()}
+                onClick={() => ((window as any)?.TetikNative?.openAppSettings || (window as any)?.VitaGoNative?.openAppSettings)()}
                 className="px-2 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] border border-slate-600 cursor-pointer"
               >
                 ⚙️ Sozlamalar

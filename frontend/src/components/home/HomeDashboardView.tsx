@@ -55,10 +55,55 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
   const targetSteps = user?.daily_target_steps || 10000;
   const stepPercent = targetSteps > 0 ? Math.min(100, Math.round((steps / targetSteps) * 100)) : 0;
 
-  // Circular progress calculations for 78% gauge
+  // Circular progress calculations for gauge
   const radius = 32;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (stepPercent / 100) * circumference;
+
+  // Real Weekly Steps for Du-Ya
+  const weeklyStepsData = React.useMemo(() => {
+    const days = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
+    const now = new Date();
+    const currentDay = now.getDay();
+    const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + distanceToMonday);
+
+    return days.map((day, idx) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + idx);
+      const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      let val = 0;
+      try {
+        const raw = localStorage.getItem(`doriscan_steps_${dateKey}`);
+        if (raw) val = parseInt(raw, 10) || 0;
+      } catch {}
+      if (idx === (currentDay === 0 ? 6 : currentDay - 1)) {
+        val = Math.max(val, steps);
+      }
+      const isToday = idx === (currentDay === 0 ? 6 : currentDay - 1);
+      const pct = targetSteps > 0 ? Math.min(100, Math.round((val / targetSteps) * 100)) : 0;
+      return { day, steps: val, pct, isToday };
+    });
+  }, [steps, targetSteps]);
+
+  // Latest real workout from storage
+  const latestActivity = React.useMemo(() => {
+    try {
+      const raw =
+        user?.sport_activities_json ||
+        localStorage.getItem('tetik_activities') ||
+        localStorage.getItem('doriscan_activities') ||
+        localStorage.getItem('vitago_activities');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed[parsed.length - 1];
+        }
+      }
+    } catch {}
+    return null;
+  }, [user?.sport_activities_json]);
 
   const handleCardClick = (action: () => void) => {
     triggerHaptic?.('light');
@@ -160,51 +205,54 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
             </div>
           </div>
 
-          {/* Mini Weekly Bar Chart */}
-          <div className="mt-4 pt-3 border-t border-white/15 flex items-end justify-between gap-1.5 h-10">
-            {[45, 65, 80, 50, 95, 78, 60].map((h, idx) => {
-              const days = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
-              const isToday = idx === 5; // Saturday/today
+          {/* Mini Weekly Bar Chart (Real steps per day, responsive fit) */}
+          <div className="mt-4 pt-3 border-t border-white/15 flex items-end justify-between gap-1.5 h-10 w-full min-w-0">
+            {weeklyStepsData.map((d, idx) => {
+              const hPct = d.pct > 0 ? Math.max(12, Math.min(100, d.pct)) : 6;
               return (
-                <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full justify-end min-w-0">
                   <div
-                    style={{ height: `${h}%` }}
-                    className={`w-full rounded-sm transition-all duration-500 ${
-                      isToday ? 'bg-amber-300 shadow-sm' : 'bg-white/40'
+                    style={{ height: `${hPct}%` }}
+                    className={`w-full rounded-xs transition-all duration-500 ${
+                      d.isToday ? 'bg-amber-300 shadow-xs' : 'bg-white/40'
                     }`}
                   />
-                  <span className="text-[8px] font-extrabold text-blue-200/80">{days[idx]}</span>
+                  <span className={`text-[8px] truncate ${d.isToday ? 'font-bold text-amber-200' : 'font-medium text-blue-200/80'}`}>{d.day}</span>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Card 2: Sog'liq holati (Crisp White + Green Sparkline Wave) */}
+        {/* Card 2: Sog'liq holati (Dynamic Real-Time Biological Index) */}
         <div
           onClick={() => handleCardClick(() => onNavigateTab('health'))}
-          className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 p-4 sm:p-5 shadow-lg shadow-slate-200/50 cursor-pointer active:scale-[0.98] transition group flex flex-col justify-between"
+          className="relative overflow-hidden rounded-3xl bg-white border border-slate-200/80 p-4 sm:p-5 shadow-sm hover:shadow-md transition active:scale-[0.98] cursor-pointer group flex flex-col justify-between apple-card"
         >
           <div>
             <div className="flex items-center justify-between">
-              <span className="text-[11px] sm:text-xs font-bold text-slate-500 tracking-wide uppercase flex items-center gap-1.5">
-                <div className="h-5 w-5 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                  <HeartPulse className="h-3.5 w-3.5 text-emerald-600" />
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-500 tracking-wide uppercase flex items-center gap-1.5">
+                <div className="h-5 w-5 rounded-lg bg-teal-500/10 flex items-center justify-center">
+                  <HeartPulse className="h-3.5 w-3.5 text-[#16A68A]" />
                 </div>
                 Sog'liq holati
               </span>
-              <span className="inline-flex items-center gap-0.5 text-[11px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+              <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-[#16A68A] bg-teal-50 px-2 py-0.5 rounded-full border border-teal-100">
                 <TrendingUp className="h-3 w-3" />
-                +5%
+                {stepPercent >= 75 ? "A'lo" : stepPercent >= 30 ? "Faol" : "Kuzatuvda"}
               </span>
             </div>
 
             <div className="mt-3">
-              <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                Yaxshi
+              <div className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                {stepPercent >= 75 ? "A'lo darajada" : stepPercent >= 30 ? "Yaxshi" : "Boshlang'ich"}
               </div>
-              <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
-                Biologik me'yorlar barqaror
+              <p className="text-[11px] font-medium text-slate-500 mt-0.5">
+                {stepPercent >= 75
+                  ? "Kunlik faollik to'liq bajarildi"
+                  : stepPercent >= 30
+                  ? "Kunlik faoliyat me'yorida"
+                  : "Bugungi harakat qayd etilmoqda"}
               </p>
             </div>
           </div>
@@ -214,8 +262,8 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
             <svg className="w-full h-12 overflow-visible" viewBox="0 0 200 40" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="healthGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10B981" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#10B981" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor="#16A68A" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#16A68A" stopOpacity="0.0" />
                 </linearGradient>
               </defs>
               <path
@@ -225,14 +273,14 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
               <path
                 d="M 0,28 Q 25,32 50,22 T 100,26 T 150,14 T 200,8"
                 fill="none"
-                stroke="#10B981"
+                stroke="#16A68A"
                 strokeWidth="2.5"
                 strokeLinecap="round"
               />
-              <circle cx="200" cy="8" r="4" fill="#10B981" className="animate-ping opacity-75" />
-              <circle cx="200" cy="8" r="3.5" fill="#10B981" />
+              <circle cx="200" cy="8" r="4" fill="#16A68A" className="animate-ping opacity-75" />
+              <circle cx="200" cy="8" r="3.5" fill="#16A68A" />
             </svg>
-            <div className="flex justify-between text-[9px] font-extrabold text-slate-400 mt-1 px-1">
+            <div className="flex justify-between text-[9px] font-medium text-slate-400 mt-1 px-1">
               <span>Du</span>
               <span>Se</span>
               <span>Ch</span>
@@ -300,55 +348,68 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
         </button>
       </div>
 
-      {/* 4. BUGUNGI FAOLIYATLAR SECTION (from Image 1) */}
+      {/* 4. BUGUNGI FAOLIYATLAR SECTION (Real Activity or Steps Tracker) */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
+          <h2 className="text-sm sm:text-base font-semibold text-slate-900 tracking-tight">
             Bugungi faoliyatlar
           </h2>
           <button
             type="button"
             onClick={() => handleCardClick(() => onNavigateTab('sport'))}
-            className="text-xs font-bold text-blue-600 hover:text-blue-800 transition flex items-center gap-1 cursor-pointer"
+            className="text-xs font-semibold text-[#16A68A] hover:text-teal-700 transition flex items-center gap-1 cursor-pointer"
           >
             <span>Barchasi</span>
             <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>
 
-        {/* Activity Card with Mini Route Map Badge */}
+        {/* Activity Card with Real Activity / Walked Distance */}
         <div
           onClick={() => handleCardClick(() => onNavigateTab('sport'))}
-          className="flex items-center justify-between p-3.5 sm:p-4 rounded-3xl bg-white border border-slate-200 shadow-sm hover:border-blue-300 hover:shadow-md transition active:scale-[0.99] cursor-pointer"
+          className="flex items-center justify-between p-3.5 sm:p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs hover:border-teal-300 hover:shadow-md transition active:scale-[0.99] cursor-pointer apple-card"
         >
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 flex items-center justify-center shrink-0">
-              <Footprints className="h-6 w-6" />
+            <div className="h-12 w-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-[#16A68A] flex items-center justify-center shrink-0">
+              <Footprints className="h-6 w-6 stroke-[1.75]" />
             </div>
             <div>
-              <div className="text-sm font-black text-slate-900">Yugurish</div>
-              <div className="text-xs font-semibold text-slate-500 mt-0.5">
-                5.2 km • 28 min • 312 kcal
+              <div className="text-sm font-semibold text-slate-900">
+                {latestActivity
+                  ? latestActivity.sport_type === 'run'
+                    ? 'Yugurish'
+                    : latestActivity.sport_type === 'bike'
+                    ? 'Velosport'
+                    : 'Piyoda yurish'
+                  : steps > 0
+                  ? 'Piyoda yurish'
+                  : "Kunlik harakat"}
+              </div>
+              <div className="text-xs font-medium text-slate-500 mt-0.5">
+                {latestActivity
+                  ? `${(latestActivity.distance_km || 0).toFixed(1)} km • ${Math.round((latestActivity.duration_sec || 0) / 60)} min • ${Math.round(latestActivity.calories || 0)} kcal`
+                  : steps > 0
+                  ? `${(steps * 0.00075).toFixed(1)} km • ${steps} qadam • ${Math.round(steps * 0.04)} kcal`
+                  : "Hali mashg'ulot boshlanmadi • Tetik Sport"}
               </div>
             </div>
           </div>
 
-          {/* Mini Route Map Thumbnail */}
-          <div className="relative w-16 h-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
-            {/* SVG mini route line */}
+          {/* Mini Route Map / Direction Thumbnail */}
+          <div className="relative w-16 h-12 rounded-xl bg-slate-50 border border-slate-200/70 overflow-hidden shrink-0 flex items-center justify-center">
             <svg className="w-full h-full p-1" viewBox="0 0 60 40">
               <path
                 d="M 10,30 Q 20,10 35,20 T 50,10"
                 fill="none"
-                stroke="#2563EB"
-                strokeWidth="3"
+                stroke="#16A68A"
+                strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               <circle cx="10" cy="30" r="3" fill="#10B981" />
-              <circle cx="50" cy="10" r="3" fill="#EF4444" />
+              <circle cx="50" cy="10" r="3" fill="#F97316" />
             </svg>
-            <div className="absolute inset-0 bg-linear-to-t from-slate-900/10 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-slate-900/5 to-transparent" />
           </div>
         </div>
       </div>
