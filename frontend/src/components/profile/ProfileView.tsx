@@ -7,6 +7,7 @@ import {
   Scale,
   HelpCircle,
   LogOut,
+  LogIn,
   ChevronRight,
   ShieldCheck,
   Sparkles,
@@ -14,6 +15,9 @@ import {
   Footprints,
   Activity,
   Heart,
+  Zap,
+  Crown,
+  Star,
 } from 'lucide-react';
 import type { UserProfile, SupportedLang } from '../../types/api';
 import type { TranslationDict } from '../../i18n/translations';
@@ -83,7 +87,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
           {/* Plan badge icon on avatar */}
           <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white shadow-md flex items-center justify-center">
-            {plan === 'ultra' ? '⚡' : plan === 'premium' ? '👑' : '👤'}
+            {plan === 'ultra' ? (
+              <Zap className="h-4 w-4 text-amber-500 fill-amber-500" />
+            ) : plan === 'premium' ? (
+              <Crown className="h-4 w-4 text-purple-600 fill-purple-600" />
+            ) : (
+              <UserIcon className="h-4 w-4 text-slate-500" />
+            )}
           </div>
         </div>
 
@@ -94,11 +104,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         <div className="mt-1 flex items-center gap-1.5">
           {plan === 'ultra' ? (
             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-linear-to-r from-amber-400 to-orange-500 text-slate-950 font-black text-xs shadow-xs">
-              ⚡ Ultra a'zo
+              <Zap className="h-3 w-3 fill-slate-950" /> Ultra a'zo
             </span>
           ) : plan === 'premium' ? (
             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-linear-to-r from-blue-500 to-indigo-600 text-white font-black text-xs shadow-xs">
-              ⭐ Premium a'zo
+              <Crown className="h-3 w-3 fill-white" /> Premium a'zo
             </span>
           ) : (
             <button
@@ -312,11 +322,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-amber-600 transition" />
         </button>
 
-        {/* Chiqish (Hisobdan chiqish) */}
-        {user && (
+        {/* Chiqish (Hisobdan chiqish) / Kirish */}
+        {user ? (
           <button
             type="button"
-            onClick={() => handleClick(onLogout)}
+            onClick={() => {
+              if (window.confirm("Rostdan ham profilingizdan chiqmoqchimisiz?")) {
+                handleClick(onLogout);
+              }
+            }}
             className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-rose-50 text-rose-600 rounded-2xl transition cursor-pointer group"
           >
             <div className="flex items-center gap-3">
@@ -325,10 +339,27 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </div>
               <div>
                 <div className="text-xs sm:text-sm font-black text-rose-600">Hisobdan chiqish</div>
-                <div className="text-[10px] text-rose-400 font-semibold">Mehmon rejimiga o'tish</div>
+                <div className="text-[10px] text-rose-400 font-semibold">Tizimdan xavfsiz chiqish</div>
               </div>
             </div>
             <ChevronRight className="h-4 w-4 text-rose-400" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => handleClick(onOpenEditProfile)}
+            className="w-full px-4 py-3.5 flex items-center justify-between text-left bg-blue-50/80 hover:bg-blue-100 text-blue-700 rounded-2xl transition cursor-pointer group border border-blue-200"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-blue-600 text-white flex items-center justify-center group-hover:scale-105 transition shadow-xs">
+                <LogIn className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="text-xs sm:text-sm font-black text-blue-900">Hisobga kirish / Ro'yxatdan o'tish</div>
+                <div className="text-[10px] text-blue-600 font-semibold">Telefon raqami orqali kiring</div>
+              </div>
+            </div>
+            <ChevronRight className="h-4 w-4 text-blue-600" />
           </button>
         )}
       </div>

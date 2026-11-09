@@ -29,7 +29,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import type { SupportedLang, UserProfile } from '../../types/api';
-import { SportTrackerManager, type SportTrackerState } from '../../services/sportTracker';
+import { SportTrackerManager, isValidWorkout, type SportTrackerState } from '../../services/sportTracker';
 import { AIWorkoutModal } from './AIWorkoutModal';
 
 const DEFAULT_API_BASE =
@@ -631,14 +631,12 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
 
   // Subscribe to persistent global SportTrackerManager
   useEffect(() => {
-    if (isUltra) {
-      tracker.startGpsWatch(false);
-    }
+    tracker.startGpsWatch(false);
     const unsub = tracker.subscribe((next) => {
       setTrackerState({ ...next });
     });
     return unsub;
-  }, [isUltra, tracker]);
+  }, [tracker]);
 
   const {
     isRecording,
@@ -759,10 +757,15 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
     attachReliableTileLayer(map);
 
     const userIcon = L.divIcon({
-      className: 'vitago-user-gps-pin',
-      html: `<div style="width:22px;height:22px;border-radius:50%;background:#10b981;border:3.5px solid #ffffff;box-shadow:0 0 0 7px rgba(16,185,129,0.28);"></div>`,
-      iconSize: [22, 22],
-      iconAnchor: [11, 11],
+      className: 'vitago-svg-user-pin',
+      html: `<div style="position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+        <div style="position:absolute;width:28px;height:28px;border-radius:50%;background:#10b981;opacity:0.25;animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;"></div>
+        <div style="position:relative;width:18px;height:18px;border-radius:50%;background:#10b981;border:3px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">
+          <div style="width:5px;height:5px;border-radius:50%;background:#ffffff;"></div>
+        </div>
+      </div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
     });
 
     userMarkerRef.current = L.marker(userPos, { icon: userIcon }).addTo(map);
@@ -803,10 +806,22 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
 
     if (destPos) {
       const destIcon = L.divIcon({
-        className: 'vitago-dest-gps-pin',
-        html: `<div style="width:26px;height:26px;border-radius:50%;background:#ea580c;border:3px solid #ffffff;box-shadow:0 4px 12px rgba(234,88,12,0.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:900;">🏁</div>`,
-        iconSize: [26, 26],
-        iconAnchor: [13, 13],
+        className: 'vitago-svg-finish-pin',
+        html: `<div style="position:relative;width:30px;height:38px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35));">
+          <svg width="30" height="38" viewBox="0 0 32 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 0C7.163 0 0 7.163 0 16c0 11.2 14.4 20.8 15.2 21.333a1.4 1.4 0 0 0 1.6 0C17.6 36.8 32 27.2 32 16c0-8.837-7.163-16-16-16z" fill="#ef4444"/>
+            <circle cx="16" cy="15" r="9" fill="#ffffff"/>
+            <rect x="11.5" y="11" width="3" height="3" fill="#1e293b"/>
+            <rect x="14.5" y="11" width="3" height="3" fill="#ffffff"/>
+            <rect x="17.5" y="11" width="3" height="3" fill="#1e293b"/>
+            <rect x="11.5" y="14" width="3" height="3" fill="#ffffff"/>
+            <rect x="14.5" y="14" width="3" height="3" fill="#1e293b"/>
+            <rect x="17.5" y="14" width="3" height="3" fill="#ffffff"/>
+            <rect x="11.5" y="17" width="1" height="4" fill="#64748b"/>
+          </svg>
+        </div>`,
+        iconSize: [30, 38],
+        iconAnchor: [15, 38],
       });
 
       if (!destMarkerRef.current) {
@@ -850,10 +865,15 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
     attachReliableTileLayer(rMap);
 
     const uIcon = L.divIcon({
-      className: 'vitago-rec-user-pin',
-      html: `<div style="width:22px;height:22px;border-radius:50%;background:#ea580c;border:3.5px solid #ffffff;box-shadow:0 0 0 7px rgba(234,88,12,0.32);"></div>`,
-      iconSize: [22, 22],
-      iconAnchor: [11, 11],
+      className: 'vitago-svg-rec-user-pin',
+      html: `<div style="position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+        <div style="position:absolute;width:28px;height:28px;border-radius:50%;background:#ea580c;opacity:0.3;animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;"></div>
+        <div style="position:relative;width:18px;height:18px;border-radius:50%;background:#ea580c;border:3px solid #ffffff;box-shadow:0 3px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">
+          <div style="width:5px;height:5px;border-radius:50%;background:#ffffff;"></div>
+        </div>
+      </div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
     });
 
     recordUserMarkerRef.current = L.marker(userPos, { icon: uIcon }).addTo(rMap);
@@ -911,10 +931,22 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
 
     if (destPos) {
       const destIcon = L.divIcon({
-        className: 'vitago-rec-dest-pin',
-        html: `<div style="width:24px;height:24px;border-radius:50%;background:#2563eb;border:3px solid #ffffff;box-shadow:0 4px 10px rgba(37,99,235,0.45);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:900;">🏁</div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
+        className: 'vitago-svg-rec-dest-pin',
+        html: `<div style="position:relative;width:30px;height:38px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35));">
+          <svg width="30" height="38" viewBox="0 0 32 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 0C7.163 0 0 7.163 0 16c0 11.2 14.4 20.8 15.2 21.333a1.4 1.4 0 0 0 1.6 0C17.6 36.8 32 27.2 32 16c0-8.837-7.163-16-16-16z" fill="#2563eb"/>
+            <circle cx="16" cy="15" r="9" fill="#ffffff"/>
+            <rect x="11.5" y="11" width="3" height="3" fill="#1e293b"/>
+            <rect x="14.5" y="11" width="3" height="3" fill="#ffffff"/>
+            <rect x="17.5" y="11" width="3" height="3" fill="#1e293b"/>
+            <rect x="11.5" y="14" width="3" height="3" fill="#ffffff"/>
+            <rect x="14.5" y="14" width="3" height="3" fill="#1e293b"/>
+            <rect x="17.5" y="14" width="3" height="3" fill="#ffffff"/>
+            <rect x="11.5" y="17" width="1" height="4" fill="#64748b"/>
+          </svg>
+        </div>`,
+        iconSize: [30, 38],
+        iconAnchor: [15, 38],
       });
       if (!recordDestMarkerRef.current) {
         recordDestMarkerRef.current = L.marker(destPos, { icon: destIcon }).addTo(rMap);
@@ -996,6 +1028,13 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
   const stopAndSaveRecording = async () => {
     setSavingWorkout(true);
     const snap = tracker.stopWorkout();
+
+    const qualityCheck = isValidWorkout(snap);
+    if (!qualityCheck.valid) {
+      setSavingWorkout(false);
+      alert(qualityCheck.reason || "Mashg'ulot masofasi yoki vaqti juda kam bo'lganligi sababli saqlanmadi.");
+      return;
+    }
 
     const finalDist = Number(snap.distanceKm.toFixed(2));
     const finalSec = Math.max(snap.elapsedSec, 1);
@@ -2562,7 +2601,7 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
       />
 
       {/* ==================== NON-BLOCKING GPS PERMISSION PROMPT BANNER (NEVER BLOCKS ENTRY TO SPORT!) ==================== */}
-      {isUltra && gpsPermissionDenied && !gpsReady && (
+      {gpsPermissionDenied && !gpsReady && (
         <div className="fixed bottom-16 left-2.5 right-2.5 z-40 max-w-md mx-auto bg-slate-900/95 backdrop-blur border border-emerald-500/50 rounded-2xl p-3.5 shadow-2xl flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="h-9 w-9 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0">
@@ -2643,48 +2682,6 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
         </div>
       )}
 
-      {/* ==================== NON-ULTRA (STANDARD / PREMIUM) LOCK OVERLAY ==================== */}
-      {isRegistered && !isUltra && (
-        <div className="fixed top-[49px] bottom-0 left-0 right-0 z-40 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none">
-          <div className="max-w-sm w-full bg-slate-900/95 border border-slate-800 rounded-3xl p-7 shadow-2xl flex flex-col items-center">
-            <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 border-2 border-amber-400/40 flex items-center justify-center mb-4 shadow-lg shadow-orange-500/20">
-              <Lock className="h-10 w-10 text-amber-400" />
-            </div>
-
-            <div className="inline-flex items-center gap-1 rounded-full bg-orange-500/20 border border-orange-500/30 px-3 py-1 text-[11px] font-black text-orange-300 uppercase mb-2">
-              <Zap className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-              <span>⚡ Sport • Faqat Ultra</span>
-            </div>
-
-            <h2 className="text-xl font-black text-white tracking-tight">
-              Sport bo'limi qulflangan
-            </h2>
-
-            <p className="mt-2.5 text-xs text-slate-300 leading-relaxed">
-              Siz hozirda <b className="text-emerald-400">{isPremium ? 'Premium' : 'Bepul (Standart)'}</b> tarifidasiz. Real vaqtdagi GPS
-              Navigator, 7 xil sport trekeri va AI Sport Ovqatlanish murabbiyidan foydalanish uchun{' '}
-              <b className="text-amber-400">ULTRA</b> tarifiga o'ting!
-            </p>
-
-            <button
-              type="button"
-              onClick={onOpenPlans}
-              className="mt-6 w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white font-black text-sm shadow-xl shadow-orange-500/25 transition cursor-pointer flex items-center justify-center gap-2"
-            >
-              <Sparkles className="h-4 w-4" />
-              <span>Ultra Tarifiga O'tish</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={onBackToMain}
-              className="mt-3 w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition cursor-pointer"
-            >
-              ← Asosiy menyuga qaytish
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -815,7 +815,7 @@ export function AdminApp() {
                       >
                         <div className="flex items-start gap-3">
                           <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-black text-xs shrink-0">
-                            {item.plan === 'ultra' ? '👑' : '💎'}
+                            {item.plan === 'ultra' ? <Crown className="h-5 w-5 text-amber-400" /> : <Sparkles className="h-5 w-5 text-blue-400" />}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
@@ -926,7 +926,7 @@ export function AdminApp() {
                   </div>
                   <div className="bg-slate-800/40 p-3 rounded-2xl border border-slate-800">
                     <div className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                      <span>🏃 Sport (Sport)</span>
+                      <span className="inline-flex items-center gap-1.5"><Activity className="h-3.5 w-3.5 text-indigo-400" /> Sport</span>
                       <span className="text-indigo-400 font-black">
                         {stats.onboarding_stats.categories_viewed?.sport || 0} marta
                       </span>
@@ -1131,7 +1131,7 @@ export function AdminApp() {
                 <div className="space-y-2.5">
                   {[
                     { label: "🩺 Sog'liq (Health)", val: growthAnalytics?.categories_viewed?.health ?? (stats?.onboarding_stats?.categories_viewed?.health || 0), color: "text-blue-400" },
-                    { label: "🏃 Sport (Sport)", val: growthAnalytics?.categories_viewed?.sport ?? (stats?.onboarding_stats?.categories_viewed?.sport || 0), color: "text-indigo-400" },
+                    { label: "Sport (Sport)", val: growthAnalytics?.categories_viewed?.sport ?? (stats?.onboarding_stats?.categories_viewed?.sport || 0), color: "text-indigo-400" },
                     { label: "🌱 Life (Hayot)", val: growthAnalytics?.categories_viewed?.life ?? (stats?.onboarding_stats?.categories_viewed?.life || 0), color: "text-emerald-400" },
                     { label: "💎 Tariflar (Pricing)", val: growthAnalytics?.categories_viewed?.pricing ?? (stats?.onboarding_stats?.categories_viewed?.pricing || 0), color: "text-purple-400" },
                     { label: "🛡️ Maxfiylik (Privacy)", val: growthAnalytics?.categories_viewed?.privacy ?? (stats?.onboarding_stats?.categories_viewed?.privacy || 0), color: "text-slate-400" },
@@ -1441,7 +1441,8 @@ export function AdminApp() {
             </div>
 
             <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
-              <div className="overflow-x-auto">
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-800/80 text-slate-400 uppercase font-bold text-[10px] tracking-wider border-b border-slate-800">
                     <tr>
@@ -1532,6 +1533,75 @@ export function AdminApp() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile Card Layout (Responsive Rule 4) */}
+              <div className="md:hidden divide-y divide-slate-800">
+                {filteredPayments.map((p) => (
+                  <div key={p.id} className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-slate-400">#{p.id}</span>
+                        <span className="font-extrabold text-sm text-white">{p.user_name}</span>
+                      </div>
+                      <span
+                        className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
+                          p.status === 'approved'
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : p.status === 'rejected'
+                            ? 'bg-rose-500/20 text-rose-400'
+                            : 'bg-amber-500/20 text-amber-400'
+                        }`}
+                      >
+                        {p.status}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="text-slate-400">{p.user_phone}</div>
+                      <div className="font-mono text-slate-200">
+                        {p.card_number} ({p.card_type.toUpperCase()})
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <div>
+                        <span
+                          className={`font-black uppercase text-[10px] px-2 py-0.5 rounded-full ${
+                            p.plan === 'ultra'
+                              ? 'bg-purple-500/20 text-purple-300'
+                              : 'bg-emerald-500/20 text-emerald-300'
+                          }`}
+                        >
+                          {p.plan} ({p.billing_cycle})
+                        </span>
+                        <div className="font-black text-white text-sm mt-0.5">
+                          {(p.final_amount_uzs ?? 0).toLocaleString()} so'm
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {p.receipt_image && (
+                          <button
+                            onClick={() => setViewReceiptUrl(p.receipt_image || null)}
+                            className="px-2.5 py-1.5 rounded-lg bg-slate-800 text-emerald-400 text-xs font-bold inline-flex items-center gap-1"
+                          >
+                            <Eye className="h-3 w-3" />
+                            <span>Chek</span>
+                          </button>
+                        )}
+                        {p.status !== 'approved' && (
+                          <button
+                            onClick={() => handlePaymentAction(p.id, 'approve')}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold text-xs"
+                          >
+                            Tasdiqlash
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -1554,7 +1624,8 @@ export function AdminApp() {
             </div>
 
             <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
-              <div className="overflow-x-auto">
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-800/80 text-slate-400 uppercase font-bold text-[10px] tracking-wider border-b border-slate-800">
                     <tr>
@@ -1633,6 +1704,72 @@ export function AdminApp() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile Card Layout (Responsive Rule 4) */}
+              <div className="md:hidden divide-y divide-slate-800">
+                {filteredUsers.map((u) => (
+                  <div key={u.id} className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-slate-400">#{u.id}</span>
+                        <span className="font-extrabold text-sm text-white">
+                          {u.first_name} {u.last_name || ''}
+                        </span>
+                      </div>
+                      <span
+                        className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
+                          u.plan === 'ultra'
+                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                            : u.plan === 'premium'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-slate-800 text-slate-400'
+                        }`}
+                      >
+                        {u.plan}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-slate-400">
+                      <span className="font-mono">{u.phone}</span>
+                      <span className="inline-flex items-center gap-1 text-amber-400 font-bold">
+                        <Flame className="h-3.5 w-3.5" />
+                        {u.streak_count} kun streak
+                      </span>
+                      <span className="font-medium text-slate-300">
+                        {(u.daily_steps ?? 0).toLocaleString()} qadam
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-800/60">
+                      <button
+                        onClick={() => {
+                          setSelectedUserForPlan(u);
+                          setNewPlanChoice(u.plan);
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-slate-800 text-emerald-400 text-xs font-bold"
+                      >
+                        Reja
+                      </button>
+                      <button
+                        onClick={() => {
+                          setNotifTargetUserId(u.id);
+                          setActiveTab('notifications');
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-400 text-xs font-bold inline-flex items-center gap-1"
+                      >
+                        <Bell className="h-3 w-3" />
+                        <span>Xabar</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(u.id, `${u.first_name} ${u.last_name || ''}`)}
+                        className="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-400 text-xs font-bold"
+                      >
+                        O'chirish
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -1643,7 +1780,7 @@ export function AdminApp() {
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
               <h2 className="text-lg font-black text-white flex items-center gap-2 mb-4">
                 <Trophy className="h-5 w-5 text-emerald-400" />
-                <span>Yangi Sport Klubi Qo'shish (VitaGo ⚡ Sport)</span>
+                <span>Yangi Sport Klubi Qo'shish (VitaGo Sport)</span>
               </h2>
               <form onSubmit={handleCreateClub} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

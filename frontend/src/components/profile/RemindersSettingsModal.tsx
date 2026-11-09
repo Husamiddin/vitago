@@ -12,8 +12,18 @@ import {
   ExternalLink,
   Trash2,
   Plus,
+  Globe,
+  HeartPulse,
+  Activity,
+  Megaphone,
 } from 'lucide-react';
 import type { UserProfile } from '../../types/api';
+import {
+  isPushSupported,
+  getPushPermissionState,
+  subscribeToWebPush,
+  unsubscribeFromWebPush,
+} from '../../services/pushNotificationService';
 
 interface RemindersSettingsModalProps {
   isOpen: boolean;
@@ -29,6 +39,7 @@ interface NotificationPrefs {
   notify_sport: boolean;
   notify_general: boolean;
   notify_in_app: boolean;
+  notify_web_push: boolean;
   notify_quiet_hours_start: string;
   notify_quiet_hours_end: string;
   notify_detailed: boolean;
@@ -59,6 +70,7 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
     notify_sport: true,
     notify_general: true,
     notify_in_app: true,
+    notify_web_push: true,
     notify_quiet_hours_start: '22:00',
     notify_quiet_hours_end: '08:00',
     notify_detailed: false,
@@ -66,6 +78,9 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
 
   const [loading, setLoading] = useState(false);
   const [linkingLoading, setLinkingLoading] = useState(false);
+  const [webPushLoading, setWebPushLoading] = useState(false);
+  const [webPushPermission, setWebPushPermission] = useState<NotificationPermission>('default');
+  const [webPushError, setWebPushError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [reminders, setReminders] = useState<ScheduledReminderItem[]>([]);
   const [showNewReminderForm, setShowNewReminderForm] = useState(false);
@@ -74,9 +89,15 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
   const [newTitle, setNewTitle] = useState('Dori ichish vaqti');
   const [newCategory, setNewCategory] = useState<'health' | 'sport' | 'general'>('health');
   const [newTime, setNewTime] = useState('20:00');
-  const [newChannel, setNewChannel] = useState<'telegram' | 'in_app' | 'both'>('both');
+  const [newChannel, setNewChannel] = useState<'all' | 'web_push' | 'telegram' | 'in_app'>('all');
 
   const token = currentUser?.token;
+
+  useEffect(() => {
+    if (isPushSupported()) {
+      setWebPushPermission(getPushPermissionState());
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen || !token) return;
@@ -173,6 +194,33 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
       setPrefs((prev) => ({ ...prev, is_telegram_connected: false, telegram_id: null }));
     } catch {
       // ignore
+    }
+  };
+
+  const handleWebPushToggle = async () => {
+    if (!token) return;
+    triggerHaptic?.('medium');
+    setWebPushError(null);
+
+    if (prefs.notify_web_push) {
+      // Turn off
+      await unsubscribeFromWebPush(token);
+      const updated = { ...prefs, notify_web_push: false };
+      setPrefs(updated);
+      savePreferences(updated);
+    } else {
+      // Turn on
+      setWebPushLoading(true);
+      const res = await subscribeToWebPush(token);
+      setWebPushLoading(false);
+      setWebPushPermission(getPushPermissionState());
+      if (res.ok) {
+        const updated = { ...prefs, notify_web_push: true };
+        setPrefs(updated);
+        savePreferences(updated);
+      } else {
+        setWebPushError(res.error || "Web Push ulanmadi.");
+      }
     }
   };
 
@@ -306,6 +354,42 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
             )}
           </div>
 
+          {/* Web Push (Browser / Mobile PWA) Card */}
+          <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-100 space-y-2.5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                  <Globe className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-black text-slate-900">Brauzer / Telefon Web Push</h3>
+                  <p className="text-[11px] text-slate-500">
+                    {prefs.notify_web_push && webPushPermission === 'granted'
+                      ? 'Qurilmangizda Web Push xabarlar faol'
+                      : "Ilova yopiq bo'lsa ham ekranga tezkor eslatma kelishi uchun yoqing"}
+                  </p>
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={prefs.notify_web_push && webPushPermission === 'granted'}
+                disabled={webPushLoading}
+                onChange={handleWebPushToggle}
+                className="w-4 h-4 accent-indigo-600 rounded cursor-pointer mt-1"
+              />
+            </div>
+            {webPushPermission === 'denied' && (
+              <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-[11px] text-rose-700 font-medium">
+                ⚠️ Brauzeringizda bildirishnomalar bloklangan. Sayt sozlamalaridan «Ruxsat berish» (Allow) ni tanlang.
+              </div>
+            )}
+            {webPushError && (
+              <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-800">
+                {webPushError}
+              </div>
+            )}
+          </div>
+
           {/* Categories & Channel Toggles */}
           <div className="space-y-3">
             <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Eslatmalar Turlari</h4>
@@ -313,7 +397,9 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
             {/* Health */}
             <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
               <div className="flex items-center gap-2.5">
-                <span className="text-lg">💊</span>
+                <div className="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                  <HeartPulse className="h-4 w-4" />
+                </div>
                 <div>
                   <p className="text-xs font-black text-slate-900">Salomatlik va Dori eslatmalari</p>
                   <p className="text-[10px] text-slate-400">Dori qabul qilish vaqti kelganda eslatish</p>
@@ -330,7 +416,9 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
             {/* Sport */}
             <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
               <div className="flex items-center gap-2.5">
-                <span className="text-lg">🏃</span>
+                <div className="h-8 w-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                  <Activity className="h-4 w-4" />
+                </div>
                 <div>
                   <p className="text-xs font-black text-slate-900">Sport va Mashg'ulot eslatmalari</p>
                   <p className="text-[10px] text-slate-400">Kundalik yurish va fitnes rejalarini eslatish</p>
@@ -347,7 +435,9 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
             {/* In-App Push */}
             <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
               <div className="flex items-center gap-2.5">
-                <Smartphone className="w-4 h-4 text-purple-600" />
+                <div className="h-8 w-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+                  <Smartphone className="h-4 w-4" />
+                </div>
                 <div>
                   <p className="text-xs font-black text-slate-900">Ilova ichidagi Push xabarlar</p>
                   <p className="text-[10px] text-slate-400">Ilova ochiq paytda ekranda ko'rsatish</p>
@@ -364,7 +454,9 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
             {/* General */}
             <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
               <div className="flex items-center gap-2.5">
-                <span className="text-lg">📢</span>
+                <div className="h-8 w-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                  <Megaphone className="h-4 w-4" />
+                </div>
                 <div>
                   <p className="text-xs font-black text-slate-900">Umumiy tizim yangiliklari</p>
                   <p className="text-[10px] text-slate-400">VitaGo yangilanishlari va qiziqarli maslahatlar</p>
@@ -439,9 +531,9 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
                       onChange={(e) => setNewCategory(e.target.value as any)}
                       className="w-full text-xs font-bold p-2 bg-white rounded-xl border border-slate-200"
                     >
-                      <option value="health">💊 Salomatlik / Dori</option>
-                      <option value="sport">🏃 Sport / Yugurish</option>
-                      <option value="general">🔔 Umumiy</option>
+                      <option value="health">Salomatlik / Dori</option>
+                      <option value="sport">Sport / Yugurish</option>
+                      <option value="general">Umumiy</option>
                     </select>
                   </div>
                   <div>
@@ -453,6 +545,20 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
                       className="w-full text-xs font-bold p-2 bg-white rounded-xl border border-slate-200"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-700 block mb-0.5">Yetkazish kanali</label>
+                  <select
+                    value={newChannel}
+                    onChange={(e) => setNewChannel(e.target.value as any)}
+                    className="w-full text-xs font-bold p-2 bg-white rounded-xl border border-slate-200"
+                  >
+                    <option value="all">Barcha kanallar (Telegram + Push + Ilova)</option>
+                    <option value="web_push">Brauzer / Telefon (Web Push)</option>
+                    <option value="telegram">Telegram Bot</option>
+                    <option value="in_app">Faqat ilova ichida</option>
+                  </select>
                 </div>
 
                 <div>
@@ -477,7 +583,7 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
                   </button>
                   <button
                     type="submit"
-                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 shadow-xs"
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 shadow-xs cursor-pointer"
                   >
                     Saqlash
                   </button>
@@ -499,7 +605,11 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
                   >
                     <div className="min-w-0 flex-1 pr-2">
                       <div className="flex items-center gap-1.5 font-bold text-slate-800">
-                        <span>{r.category === 'sport' ? '🏃' : '💊'}</span>
+                        {r.category === 'sport' ? (
+                          <Activity className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                        ) : (
+                          <HeartPulse className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                        )}
                         <span className="truncate">{r.title}</span>
                         <span
                           className={`text-[9px] px-1.5 py-0.2 rounded font-extrabold ${
@@ -515,7 +625,13 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
                       </div>
                       <p className="text-[10px] text-slate-400 truncate mt-0.5">
                         {new Date(r.scheduled_for).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} •{' '}
-                        {r.delivery_channel === 'both' ? 'Telegram + Ilova' : r.delivery_channel}
+                        {r.delivery_channel === 'all'
+                          ? 'Barcha kanallar'
+                          : r.delivery_channel === 'web_push'
+                          ? 'Web Push'
+                          : r.delivery_channel === 'both'
+                          ? 'Telegram + Ilova'
+                          : r.delivery_channel}
                       </p>
                     </div>
                     {r.status === 'pending' && (

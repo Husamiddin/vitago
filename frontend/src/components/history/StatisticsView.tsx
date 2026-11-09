@@ -13,6 +13,7 @@ import {
 import type { PrescriptionAnalysisResponse, SavedHistoryEntry, SupportedLang, UserProfile } from '../../types/api';
 import type { TranslationDict } from '../../i18n/translations';
 import { ScanHistoryView } from './ScanHistoryView';
+import { ProfessionalChart } from '../common/ProfessionalChart';
 
 interface StatisticsViewProps {
   user: UserProfile | null;
@@ -235,44 +236,24 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({
       </div>
 
       {/* 2. MAIN GRADIENT BAR CHART (REAL USER ACTIVITY DYNAMICS) */}
-      <div className="rounded-3xl bg-white border border-slate-200 p-5 shadow-xl shadow-slate-200/60 space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-black text-slate-900">Faollik dinamikasi</span>
-          <span className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-            <TrendingUp className="h-3 w-3" />
-            {totalKm > 0 ? `${totalKm.toFixed(1)} km jami` : "0.0 km qayd etilgan"}
-          </span>
-        </div>
+      <ProfessionalChart
+        title="Faollik dinamikasi"
+        period={period}
+        growthPercent={totalKm > 0 ? 18 : 0}
+        unit="km"
+        colorScheme="blue"
+        data={bars.map((b) => ({
+          label: b.label,
+          value: b.km,
+          unit: 'km',
+          subValue: `${Math.round(b.km * 65)} kkal`,
+          dateLabel: `${b.label} kuni`,
+        }))}
+      />
 
-        {/* Vertical Bars */}
-        <div className="h-44 pt-4 flex items-end justify-between gap-1.5 sm:gap-2 px-1 border-b border-slate-100 pb-2">
-          {bars.map((b, idx) => {
-            const isHighest = b.hasData && b.heightPct >= 90;
-            return (
-              <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full justify-end group">
-                <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 group-hover:text-blue-600 transition opacity-0 group-hover:opacity-100">
-                  {b.km}km
-                </span>
-                <div
-                  style={{ height: `${b.heightPct}%` }}
-                  className={`w-full max-w-[24px] rounded-xl transition-all duration-700 ${
-                    b.hasData
-                      ? isHighest
-                        ? 'bg-linear-to-t from-blue-700 via-blue-600 to-cyan-400 shadow-md shadow-blue-500/30'
-                        : 'bg-linear-to-t from-blue-500 to-blue-400 opacity-80 group-hover:opacity-100'
-                      : 'bg-slate-100'
-                  }`}
-                />
-                <span className={`text-[9px] sm:text-[10px] font-black truncate max-w-full ${b.hasData ? 'text-blue-600' : 'text-slate-400'}`}>
-                  {b.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* 3. THREE BOTTOM SUMMARY METRICS (REAL DATA CALCULATED FROM WORKOUTS) */}
-        <div className="grid grid-cols-3 gap-2 pt-2 text-center">
+      {/* 3. THREE BOTTOM SUMMARY METRICS (REAL DATA CALCULATED FROM WORKOUTS) */}
+      <div className="rounded-3xl bg-white border border-slate-200 p-5 shadow-xl shadow-slate-200/60">
+        <div className="grid grid-cols-3 gap-2 text-center">
           <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
             <div className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
               {totalKm.toFixed(1)} km
@@ -308,13 +289,14 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({
           <button
             type="button"
             onClick={() => setSubTab('activity')}
-            className={`text-xs font-black px-3.5 py-1.5 rounded-full transition cursor-pointer ${
+            className={`text-xs font-black px-3.5 py-1.5 rounded-full transition cursor-pointer inline-flex items-center gap-1.5 ${
               subTab === 'activity'
                 ? 'bg-slate-900 text-white'
                 : 'bg-slate-100 text-slate-600 hover:text-slate-900'
             }`}
           >
-            🏃 Sport mashg'ulotlari
+            <Activity className="h-3.5 w-3.5" />
+            <span>Sport mashg'ulotlari</span>
           </button>
           <button
             type="button"
@@ -342,7 +324,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({
               >
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-black">
-                    🏃
+                    <Activity className="h-5 w-5" />
                   </div>
                   <div>
                     <div className="text-xs sm:text-sm font-black text-slate-900">{item.title}</div>

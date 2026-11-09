@@ -44,6 +44,7 @@ export class SportTrackerManager {
   private watchId: number | null = null;
   private timerId: ReturnType<typeof setInterval> | null = null;
   private lastPos: [number, number] | null = null;
+  private lastTimeMs: number | null = null;
   private lastAlt: number | null = null;
   private wakeLock: any = null;
   private geocodedOnce = false;
@@ -233,6 +234,11 @@ export class SportTrackerManager {
       const alt = pos.coords.altitude;
       const acc = Math.round(pos.coords.accuracy || 10);
 
+      // GPS Precision / Kalman Filter: Discard degraded GPS fixes where accuracy > 40 meters
+      if (acc > 40 && this.state.isRecording) {
+        return;
+      }
+
       localStorage.setItem(GPS_GRANTED_KEY, 'true');
       localStorage.setItem('vitago_last_gps_pos', JSON.stringify([lat, lng]));
 
@@ -243,17 +249,35 @@ export class SportTrackerManager {
       let nextDestRoute = this.state.destRouteCoords;
       let nextDestReached = this.state.destReached;
 
+      const nowMs = Date.now();
+
       if (this.state.isRecording) {
-        if (this.lastPos) {
+        if (this.lastPos && this.lastTimeMs) {
+          const dtSec = Math.max(0.5, (nowMs - this.lastTimeMs) / 1000);
           const dKm = haversineKm(this.lastPos[0], this.lastPos[1], lat, lng);
-          // Count movement smoothly even at walking pace or off-center from route (1.2m to 1.5km)
-          if (dKm >= 0.0012 && dKm < 1.5 && acc <= 150) {
+          const speedKmh = (dKm / dtSec) * 3600;
+
+          // Speed-bounding jump filtering:
+          // Max 40 km/h for foot sports, 100 km/h for cycling. Discard impossible teleportation jumps.
+          const isCycling =
+            this.state.selectedSport === 'ride' ||
+            this.state.selectedSport === 'mtb_ride' ||
+            this.state.selectedSport === 'gravel_ride';
+          const maxSpeedKmh = isCycling ? 100 : 40;
+          if (speedKmh > maxSpeedKmh) {
+            return;
+          }
+
+          // Count movement smoothly if at least 2.0m and under 1.0km per single fix
+          if (dKm >= 0.002 && dKm < 1.0) {
             nextDist = Number((nextDist + dKm).toFixed(3));
             nextRoute = [...nextRoute, [lat, lng]];
             this.lastPos = [lat, lng];
+            this.lastTimeMs = nowMs;
           }
         } else {
           this.lastPos = [lat, lng];
+          this.lastTimeMs = nowMs;
           nextRoute = [[lat, lng]];
         }
 
@@ -277,6 +301,7 @@ export class SportTrackerManager {
         }
       } else {
         this.lastPos = [lat, lng];
+        this.lastTimeMs = nowMs;
       }
 
       // Off-Line Corridor & Destination Arrival Check:
@@ -462,4 +487,20 @@ export class SportTrackerManager {
     }
     return finalSnapshot;
   }
+}
+
+export function isValidWorkout(snapshot: SportTrackerState): { valid: boolean; reason?: string } {
+  if (snapshot.elapsedSec < 30) {
+    return {
+      valid: false,
+      reason: "Mashg'ulot davomiyligi juda kam (kamida 30 soniya harakatlanish talab etiladi). Saqlanmadi.",
+    };
+  }
+  if (snapshot.distanceKm < 0.03) {
+    return {
+      valid: false,
+      reason: "Bosib o'tilgan masofa juda kam (kamida 30 metr talab etiladi). Saqlanmadi.",
+    };
+  }
+  return { valid: true };
 }

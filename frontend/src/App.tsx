@@ -201,8 +201,8 @@ export const App: React.FC = () => {
     const unsub = tracker.subscribe((st) => {
       setSportTrackerState(st);
     });
-    const initSt = tracker.getState();
-    if (initSt.isRecording || initSt.destPos || initSt.gpsReady) {
+    // Eagerly trigger GPS watch silently on mount so Android and browser register Joylashuv (Location) permission
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
       tracker.startGpsWatch(true);
     }
     return () => unsub();
@@ -448,7 +448,8 @@ export const App: React.FC = () => {
     setCurrentUser(null);
     setProfileModalOpen(false);
     setAuthModalOpen(false);
-    triggerHaptic('light');
+    setActiveTab('home');
+    triggerHaptic('success');
   }, [triggerHaptic]);
 
   const ensureAuthenticated = useCallback(() => {
@@ -930,12 +931,12 @@ export const App: React.FC = () => {
               <span className="h-2.5 w-2.5 rounded-full bg-white animate-ping shrink-0" />
               <div className="min-w-0">
                 <p className="text-[11px] font-black truncate">
-                  ⚡ VitaGo Sport {sportTrackerState.isRecording ? 'Mashg‘ulot Faol (24/7)' : 'GPS Navigator Faol (24/7)'}
+                  VitaGo Sport • {sportTrackerState.isRecording ? 'Mashg‘ulot Faol (24/7)' : 'GPS Navigator Faol (24/7)'}
                 </p>
                 <p className="text-[10px] font-bold text-white/90 truncate">
                   {sportTrackerState.isRecording
-                    ? `⏱ ${String(Math.floor(sportTrackerState.elapsedSec / 60)).padStart(2, '0')}:${String(sportTrackerState.elapsedSec % 60).padStart(2, '0')} • 📏 ${sportTrackerState.distanceKm.toFixed(2)} km • 📍 ${sportTrackerState.locationLabel}`
-                    : `📍 ${sportTrackerState.locationLabel} → 🏁 Yo‘nalish (${sportTrackerState.routeDistanceKm ?? 0} km)`}
+                    ? `Vaqt: ${String(Math.floor(sportTrackerState.elapsedSec / 60)).padStart(2, '0')}:${String(sportTrackerState.elapsedSec % 60).padStart(2, '0')} • Masofa: ${sportTrackerState.distanceKm.toFixed(2)} km • ${sportTrackerState.locationLabel}`
+                    : `${sportTrackerState.locationLabel} → Yo‘nalish (${sportTrackerState.routeDistanceKm ?? 0} km)`}
                 </p>
               </div>
             </div>

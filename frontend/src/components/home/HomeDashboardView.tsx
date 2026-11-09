@@ -19,6 +19,8 @@ import {
   CheckCircle2,
   ChevronRight,
   Play,
+  Zap,
+  Crown,
 } from 'lucide-react';
 import type { UserProfile } from '../../types/api';
 import type { TranslationDict } from '../../i18n/translations';
@@ -68,9 +70,11 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
       {/* 1. GREETING & HEADER */}
       <div className="px-1 flex items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
             <span>Salom, {firstName}!</span>
-            <span className="inline-block animate-wave text-xl">👋</span>
+            <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-amber-100 text-amber-600 text-xs font-black">
+              ✨
+            </span>
           </h1>
           <p className="text-xs sm:text-sm font-semibold text-slate-500 mt-0.5">
             Bugungi kun uchun tayyor tavsiyalar
@@ -78,11 +82,11 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
         </div>
         {user?.plan === 'ultra' ? (
           <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-linear-to-r from-amber-400 to-orange-500 text-slate-950 font-black text-xs shadow-md shadow-orange-500/20">
-            ⚡ Ultra
+            <Zap className="h-3.5 w-3.5 fill-slate-950" /> Ultra
           </span>
         ) : user?.plan === 'premium' ? (
           <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-linear-to-r from-blue-500 to-indigo-600 text-white font-black text-xs shadow-md shadow-blue-500/20">
-            ⭐ Premium
+            <Crown className="h-3.5 w-3.5 fill-white" /> Premium
           </span>
         ) : (
           <button
