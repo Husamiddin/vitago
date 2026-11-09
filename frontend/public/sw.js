@@ -1,5 +1,5 @@
-/* VitaGo Service Worker — Offline PWA Support */
-const CACHE_NAME = 'vitago-cache-v2';
+/* Tetik Service Worker — Offline PWA Support */
+const CACHE_NAME = 'tetik-cache-v3';
 const APP_SHELL = [
   '/',
   '/index.html',
