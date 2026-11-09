@@ -70,7 +70,7 @@ export const FoodScanModal: React.FC<FoodScanModalProps> = ({
       setVerifyData(verifyRes);
 
       // Also parse standard food data
-      setFoodData({
+      const parsedFood = {
         food_name: verifyRes.food_name,
         calories: verifyRes.calories,
         ingredients: [],
@@ -81,7 +81,38 @@ export const FoodScanModal: React.FC<FoodScanModalProps> = ({
         vitamins: ['Oqsil', 'Kaliy', 'Kalsiy'],
         walk_distance_km: verifyRes.walk_distance_km,
         health_advice: verifyRes.health_advice,
-      });
+      };
+      setFoodData(parsedFood);
+
+      // Persist real meal to localStorage (tetik_user_meals_v1)
+      try {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const h = new Date().getHours();
+        let cat: 'breakfast' | 'lunch' | 'snack' | 'dinner' = 'lunch';
+        if (h < 11) cat = 'breakfast';
+        else if (h < 15) cat = 'lunch';
+        else if (h < 18) cat = 'snack';
+        else cat = 'dinner';
+
+        const mealEntry = {
+          id: `meal_${Date.now()}`,
+          date: todayStr,
+          timestamp: Date.now(),
+          foodName: verifyRes.food_name || 'Taom',
+          calories: Number(verifyRes.calories) || 350,
+          proteinG: Number(verifyRes.protein_g) || 15,
+          carbsG: Number(verifyRes.carbs_g) || 40,
+          fatG: Number(verifyRes.fat_g) || 10,
+          photoBase64: imageBase64,
+          mealCategory: cat,
+        };
+        const prev = JSON.parse(localStorage.getItem('tetik_user_meals_v1') || '[]');
+        prev.unshift(mealEntry);
+        localStorage.setItem('tetik_user_meals_v1', JSON.stringify(prev));
+        window.dispatchEvent(new CustomEvent('tetik_meal_logged', { detail: mealEntry }));
+      } catch (e) {
+        console.error('Failed to save meal:', e);
+      }
     } catch (err: any) {
       try {
         const token = currentUser?.token || '';

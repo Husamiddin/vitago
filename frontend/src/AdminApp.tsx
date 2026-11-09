@@ -561,13 +561,13 @@ export function AdminApp() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} autoComplete="off" className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-1.5">Login</label>
               <input
                 type="text"
                 required
-                autoComplete="username"
+                autoComplete="off"
                 placeholder="Admin logini"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -579,7 +579,7 @@ export function AdminApp() {
               <input
                 type="password"
                 required
-                autoComplete="current-password"
+                autoComplete="new-password"
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

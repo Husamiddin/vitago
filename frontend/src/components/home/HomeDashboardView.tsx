@@ -36,6 +36,11 @@ interface HomeDashboardViewProps {
   onOpenPrescriptionScan: () => void;
   onOpenPlans: () => void;
   triggerHaptic?: (type?: 'light' | 'success') => void;
+  demoAlarmCount?: number;
+  demoAlarmPhase?: 'idle' | 'preparing' | 'counting';
+  demoCountdownSec?: number;
+  demoTargetTimeStr?: string;
+  onStartDemoAlarm?: () => void;
 }
 
 export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
@@ -49,6 +54,11 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
   onOpenPrescriptionScan,
   onOpenPlans,
   triggerHaptic,
+  demoAlarmCount = 0,
+  demoAlarmPhase = 'idle',
+  demoCountdownSec = 60,
+  demoTargetTimeStr = '',
+  onStartDemoAlarm,
 }) => {
   const firstName = user?.first_name || 'Foydalanuvchi';
   const steps = user?.daily_steps ?? 0;

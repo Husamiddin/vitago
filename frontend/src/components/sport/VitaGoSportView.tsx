@@ -857,6 +857,56 @@ export const TetikSportView: React.FC<TetikSportViewProps> = ({
     map.on('mousemove', handleMouseMove);
     map.on('mouseup', handleMouseUp);
 
+    // Touch listeners with passive: false for smooth mobile touchscreen drawing
+    const mapEl = map.getContainer();
+    const handleTouchStart = (e: TouchEvent) => {
+      if (!mapEl.classList.contains('draw-active')) return;
+      if (e.touches.length !== 1) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = mapEl.getBoundingClientRect();
+      const pt = L.point(touch.clientX - rect.left, touch.clientY - rect.top);
+      const latlng = map.containerPointToLatLng(pt);
+      isDrawingRef.current = true;
+      drawPointsRef.current = [[latlng.lat, latlng.lng]];
+      if (freehandPolylineRef.current) {
+        freehandPolylineRef.current.remove();
+      }
+      freehandPolylineRef.current = L.polyline(drawPointsRef.current, {
+        color: '#16A68A',
+        weight: 6,
+        opacity: 0.95,
+      }).addTo(map);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isDrawingRef.current) return;
+      if (e.touches.length !== 1) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = mapEl.getBoundingClientRect();
+      const pt = L.point(touch.clientX - rect.left, touch.clientY - rect.top);
+      const latlng = map.containerPointToLatLng(pt);
+      const newPt: [number, number] = [latlng.lat, latlng.lng];
+      const last = drawPointsRef.current[drawPointsRef.current.length - 1];
+      if (!last || Math.abs(newPt[0] - last[0]) > 0.00008 || Math.abs(newPt[1] - last[1]) > 0.00008) {
+        drawPointsRef.current.push(newPt);
+        if (freehandPolylineRef.current) {
+          freehandPolylineRef.current.setLatLngs(drawPointsRef.current);
+        }
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!isDrawingRef.current) return;
+      e.preventDefault();
+      handleMouseUp();
+    };
+
+    mapEl.addEventListener('touchstart', handleTouchStart, { passive: false });
+    mapEl.addEventListener('touchmove', handleTouchMove, { passive: false });
+    mapEl.addEventListener('touchend', handleTouchEnd, { passive: false });
+
     leafletMapRef.current = map;
 
     const timers = [40, 180, 450].map((ms) => setTimeout(() => map.invalidateSize(), ms));
@@ -2310,7 +2360,13 @@ export const TetikSportView: React.FC<TetikSportViewProps> = ({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setBottomTab(item.id)}
+                onClick={() => {
+                  if (item.id === 'home') {
+                    onBackToMain();
+                    return;
+                  }
+                  setBottomTab(item.id);
+                }}
                 className={`flex flex-col items-center justify-center py-1 text-[11px] font-bold transition cursor-pointer ${
                   active ? 'text-orange-600 font-black' : 'text-slate-500 hover:text-slate-900'
                 }`}
@@ -2775,7 +2831,7 @@ export const TetikSportView: React.FC<TetikSportViewProps> = ({
       {!isRegistered && (
         <div
           onClick={() => onRequireAuth?.()}
-          className="fixed top-[49px] bottom-0 left-0 right-0 z-40 bg-slate-950/65 backdrop-blur-[2px] flex flex-col items-center justify-center p-5 text-center select-none cursor-pointer"
+          className="fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex flex-col items-center justify-center p-5 text-center select-none cursor-pointer"
         >
           <div
             onClick={(e) => e.stopPropagation()}

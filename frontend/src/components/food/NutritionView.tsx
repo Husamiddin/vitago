@@ -61,8 +61,35 @@ export const NutritionView: React.FC<NutritionViewProps> = ({
   onNavigateToSport,
   triggerHaptic,
 }) => {
-  const currentKcal = user?.daily_kcal || 850;
+    // Real meals logged by the user from AI Food Scan
+  const [userMeals, setUserMeals] = useState<any[]>(() => {
+    try {
+      const raw = localStorage.getItem('tetik_user_meals_v1');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    const handleMealUpdate = (e: any) => {
+      if (e.detail) {
+        setUserMeals(prev => [e.detail, ...prev]);
+      }
+    };
+    window.addEventListener('tetik_meal_logged', handleMealUpdate);
+    return () => window.removeEventListener('tetik_meal_logged', handleMealUpdate);
+  }, []);
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayMeals = userMeals.filter((m: any) => m.date === todayStr);
+  const realCalories = todayMeals.reduce((acc: number, m: any) => acc + (Number(m.calories) || 0), 0);
+  const latestMeal = todayMeals[0] || null;
+  const hasRealMealToday = todayMeals.length > 0;
+
+  const currentKcal = hasRealMealToday ? realCalories : (user?.daily_kcal || 0);
   const targetKcal = 2000;
+  const remainingKcal = Math.max(0, targetKcal - currentKcal);
   const kcalPercent = Math.min(100, Math.round((currentKcal / targetKcal) * 100));
 
   // Circular progress calculations
@@ -165,42 +192,46 @@ export const NutritionView: React.FC<NutritionViewProps> = ({
     }
   };
 
-  const mealCards = [
+    const mealCards = [
     {
       id: 'breakfast',
       title: 'Nonushta',
-      desc: "Suli bo'tqasi, yong'oq va rezavorlar",
-      kcal: 280,
-      image: '/food/breakfast.jpg',
+      desc: todayMeals.find((m: any) => m.mealCategory === 'breakfast')?.foodName || "Suli bo'tqasi, yong'oq va rezavorlar",
+      kcal: todayMeals.find((m: any) => m.mealCategory === 'breakfast')?.calories || 280,
+      image: todayMeals.find((m: any) => m.mealCategory === 'breakfast')?.photoBase64 || '/food/breakfast.jpg',
+      isReal: Boolean(todayMeals.find((m: any) => m.mealCategory === 'breakfast')),
       time: schedule.meals.breakfast,
-      badge: 'Sog`lom boshlanish',
+      badge: todayMeals.find((m: any) => m.mealCategory === 'breakfast') ? '✓ Haqiqiy tahlil' : 'Tavsiya',
     },
     {
       id: 'lunch',
       title: 'Tushlik',
-      desc: 'Tuxumli yangi avokado va barra sabzavotli salat',
-      kcal: 320,
-      image: '/food/salad.jpg',
+      desc: todayMeals.find((m: any) => m.mealCategory === 'lunch')?.foodName || "Grilda pishirilgan tovuq go'shti va sabzavotlar",
+      kcal: todayMeals.find((m: any) => m.mealCategory === 'lunch')?.calories || 520,
+      image: todayMeals.find((m: any) => m.mealCategory === 'lunch')?.photoBase64 || '/food/lunch.jpg',
+      isReal: Boolean(todayMeals.find((m: any) => m.mealCategory === 'lunch')),
       time: schedule.meals.lunch,
-      badge: 'Foydali yog` & oqsil',
+      badge: todayMeals.find((m: any) => m.mealCategory === 'lunch') ? '✓ Haqiqiy tahlil' : 'Tavsiya',
     },
     {
       id: 'snack',
-      title: 'Ikkinchi tushlik (Poldnik)',
-      desc: 'Yangi uzilgan mevalar, yong‘oq yoki tabiiy qatiq',
-      kcal: 140,
-      image: '/food/fruits.jpg',
+      title: 'Ikkinchi tushlik',
+      desc: todayMeals.find((m: any) => m.mealCategory === 'snack')?.foodName || "Mevalar, qatiq va bodom",
+      kcal: todayMeals.find((m: any) => m.mealCategory === 'snack')?.calories || 180,
+      image: todayMeals.find((m: any) => m.mealCategory === 'snack')?.photoBase64 || '/food/snack.jpg',
+      isReal: Boolean(todayMeals.find((m: any) => m.mealCategory === 'snack')),
       time: schedule.meals.snack,
-      badge: 'Metabolizm quvvati',
+      badge: todayMeals.find((m: any) => m.mealCategory === 'snack') ? '✓ Haqiqiy tahlil' : 'Tavsiya',
     },
     {
       id: 'dinner',
       title: 'Kechki ovqat',
-      desc: 'Dimlangan tovuq filesi va pishirilgan sabzavotlar',
-      kcal: 450,
-      image: '/food/lunch.jpg',
+      desc: todayMeals.find((m: any) => m.mealCategory === 'dinner')?.foodName || "Losos balig'i, brokkoli va zaytun yog'i",
+      kcal: todayMeals.find((m: any) => m.mealCategory === 'dinner')?.calories || 450,
+      image: todayMeals.find((m: any) => m.mealCategory === 'dinner')?.photoBase64 || '/food/lunch.jpg',
+      isReal: Boolean(todayMeals.find((m: any) => m.mealCategory === 'dinner')),
       time: schedule.meals.dinner,
-      badge: 'Yengil hazm',
+      badge: todayMeals.find((m: any) => m.mealCategory === 'dinner') ? '✓ Haqiqiy tahlil' : 'Tavsiya',
     },
   ];
 
@@ -216,17 +247,17 @@ export const NutritionView: React.FC<NutritionViewProps> = ({
 
       {/* 1. HERO CALORIE SUMMARY CARD */}
       <div className="rounded-3xl bg-linear-to-br from-white via-orange-50/30 to-amber-50/50 border border-slate-200 p-5 shadow-xl shadow-slate-200/50 flex items-center justify-between gap-4 apple-card">
-        {/* Left Side: Healthy Bowl image preview */}
+        {/* Left Side: Real or Default meal preview */}
         <div className="relative w-28 h-28 rounded-2xl overflow-hidden shrink-0 shadow-md border-2 border-white">
           <img
-            src="/food/salad.jpg"
+            src={latestMeal?.photoBase64 || '/food/salad.jpg'}
             alt="Healthy meal"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-linear-to-t from-slate-900/40 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-slate-900/50 via-transparent to-transparent" />
           <span className="absolute bottom-1.5 left-2 text-[10px] font-black text-white flex items-center gap-1">
             <Flame className="h-3 w-3 text-orange-400" />
-            Bugun
+            {hasRealMealToday ? 'Haqiqiy Taom' : 'Namuna'}
           </span>
         </div>
 
@@ -242,7 +273,7 @@ export const NutritionView: React.FC<NutritionViewProps> = ({
             </div>
             <div className="text-[10px] font-bold text-emerald-600 mt-1 flex items-center justify-end gap-0.5">
               <TrendingUp className="h-3 w-3" />
-              1,150 kcal qoldi
+              {remainingKcal} kcal qoldi
             </div>
           </div>
 

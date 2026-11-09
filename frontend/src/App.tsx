@@ -20,6 +20,7 @@ import {
   Home as HomeIcon,
   Dumbbell,
   CheckCircle2,
+  Pill,
 } from 'lucide-react';
 
 import type {
@@ -165,6 +166,75 @@ export const App: React.FC = () => {
   const [foodModalOpen, setFoodModalOpen] = useState(
     () => new URLSearchParams(window.location.search).get('modal') === 'food'
   );
+    const [healthSubTab, setHealthSubTab] = useState<'monitor' | 'drugs'>('monitor');
+  const [trials, setTrials] = useState<{ chat: number; healthPlan: number; foodScan: number; alarmDays: number }>(() => {
+    try {
+      const raw = localStorage.getItem('tetik_feature_trials');
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return { chat: 0, healthPlan: 0, foodScan: 0, alarmDays: 0 };
+  });
+
+  const saveTrial = (key: 'chat' | 'healthPlan' | 'foodScan' | 'alarmDays') => {
+    setTrials((prev) => {
+      const next = { ...prev, [key]: (prev[key] || 0) + 1 };
+      localStorage.setItem('tetik_feature_trials', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const handleOpenAiChatWithTrial = () => {
+    if (currentUser?.plan === 'premium' || currentUser?.plan === 'ultra') {
+      setChatModalOpen(true);
+      return;
+    }
+    if (trials.chat < 1) {
+      saveTrial('chat');
+      setChatModalOpen(true);
+      return;
+    }
+    setPlansModalOpen(true);
+  };
+
+  const handleOpenHealthPlanWithTrial = () => {
+    if (currentUser?.plan === 'premium' || currentUser?.plan === 'ultra') {
+      setHealthModalOpen(true);
+      return;
+    }
+    if (trials.healthPlan < 1) {
+      saveTrial('healthPlan');
+      setHealthModalOpen(true);
+      return;
+    }
+    setPlansModalOpen(true);
+  };
+
+  const handleOpenFoodScanWithTrial = () => {
+    if (currentUser?.plan === 'ultra') {
+      setFoodModalOpen(true);
+      return;
+    }
+    if (trials.foodScan < 1) {
+      saveTrial('foodScan');
+      setFoodModalOpen(true);
+      return;
+    }
+    setPlansModalOpen(true);
+  };
+
+  const handleOpenAlarmWithTrial = () => {
+    if (currentUser?.plan === 'ultra') {
+      setAlarmModalOpen(true);
+      return;
+    }
+    if (trials.alarmDays < 1) {
+      saveTrial('alarmDays');
+      setAlarmModalOpen(true);
+      return;
+    }
+    setPlansModalOpen(true);
+  };
+
   const [alarmModalOpen, setAlarmModalOpen] = useState(
     () => new URLSearchParams(window.location.search).get('modal') === 'alarm'
   );
@@ -1015,68 +1085,7 @@ export const App: React.FC = () => {
               </div>
             </div>
 
-            {/* ==================== DEMO BUDILNIK (ONLY FOR UNREGISTERED USERS, MAX 2 TRIES) ==================== */}
-            {(!currentUser || !currentUser.is_profile_complete) && demoAlarmCount < 2 && (
-              <div className="mt-3.5 relative overflow-hidden rounded-3xl border-2 border-purple-400/80 bg-gradient-to-br from-purple-700 via-indigo-700 to-rose-600 p-4 sm:p-5 text-white shadow-xl shadow-purple-600/20 transition-all duration-300">
-                <div className="flex flex-col items-center text-center space-y-2.5">
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-xs px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-200 border border-white/25">
-                    <AlarmClock className="h-3.5 w-3.5 text-amber-300 animate-bounce" />
-                    <span>Yangi foydalanuvchilar uchun • {2 - demoAlarmCount} ta sinov qoldi</span>
-                  </div>
 
-                  <h2 className="text-lg sm:text-2xl font-black tracking-tight text-white uppercase drop-shadow-xs">
-                    ⏰ DEMO BUDILNIK
-                  </h2>
-
-                  <p className="text-[11px] sm:text-xs text-purple-100 max-w-md leading-relaxed font-medium">
-                    Ilova qanday ishlashini ro‘yxatdan o‘tmasdan oldin his qilib ko‘ring! Ovozni pasaytirib bo‘lmaydigan va 3 ta jonli kamera vazifasi bilan o‘chadigan aqlli budilnik.
-                  </p>
-
-                  {demoAlarmPhase === 'idle' && (
-                    <button
-                      type="button"
-                      onClick={handleStartDemoAlarm}
-                      className="mt-1 w-full sm:w-auto min-w-[230px] inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-xs sm:text-sm font-black text-purple-800 shadow-lg hover:bg-amber-50 active:scale-95 transition-all cursor-pointer"
-                    >
-                      <Zap className="h-4 w-4 fill-amber-400 text-orange-600 shrink-0" />
-                      <span>DEMO BUDILNIKNI SINAB KO‘RISH (1 daqiqa)</span>
-                    </button>
-                  )}
-
-                  {demoAlarmPhase === 'preparing' && (
-                    <div className="w-full rounded-2xl bg-white/15 backdrop-blur-xs border border-white/25 p-3.5 text-center space-y-1.5 animate-pulse">
-                      <div className="text-xs sm:text-sm font-black text-amber-300">
-                        ⏳ Iltimos, biroz kuting, Demo Budilnik tayyorlanyapti...
-                      </div>
-                      <div className="text-[11px] font-bold text-white/90">
-                        Budilnik vaqti avtomatik <b>{demoTargetTimeStr}</b> ga o‘rnatildi (vaqtni o‘zgartirib bo‘lmaydi)
-                      </div>
-                    </div>
-                  )}
-
-                  {demoAlarmPhase === 'counting' && (
-                    <div className="w-full rounded-2xl bg-slate-950/55 backdrop-blur-md border border-white/30 p-3.5 text-center space-y-2">
-                      <div className="flex items-center justify-between text-[11px] font-bold text-purple-100 px-1">
-                        <span>🔒 Vaqt: <b>{demoTargetTimeStr}</b> (Avtomatik)</span>
-                        <span className="text-amber-300 font-black">Chalinishiga qolgan vaqt:</span>
-                      </div>
-                      <div className="font-mono text-3xl sm:text-4xl font-black text-white tracking-wider">
-                        00:{String(demoCountdownSec).padStart(2, '0')}
-                      </div>
-                      <div className="w-full h-2 rounded-full bg-white/20 overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-amber-400 to-emerald-400 transition-all duration-1000"
-                          style={{ width: `${Math.max(4, ((60 - demoCountdownSec) / 60) * 100)}%` }}
-                        />
-                      </div>
-                      <p className="text-[10px] text-amber-200 font-semibold">
-                        Taymer 00:00 bo‘lishi bilan haqiqiy o‘chirib bo‘lmas budilnik chalinadi!
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Quick Mode Switcher Tabs (Scan Photo vs Search by Name) - 100% Fit & No Clipping */}
             <div
@@ -1246,91 +1255,114 @@ export const App: React.FC = () => {
                 handleOpenSport();
               } else if (tab === 'plans') {
                 setPlansModalOpen(true);
+              } else if (tab === 'drugs') {
+                setHealthSubTab('drugs');
+                setActiveTab('health');
               } else {
                 setActiveTab(tab);
               }
               triggerHaptic('light');
             }}
-            onOpenAiChat={() => {
-              if (!ensureAuthenticated()) return;
-              if (currentUser?.plan !== 'premium' && currentUser?.plan !== 'ultra') {
-                setPlansModalOpen(true);
-                return;
-              }
-              setChatModalOpen(true);
-            }}
-            onOpenAlarm={() => {
-              if (!ensureAuthenticated()) return;
-              if (currentUser?.plan !== 'ultra') {
-                setPlansModalOpen(true);
-                return;
-              }
-              setAlarmModalOpen(true);
-            }}
-            onOpenHealthPlan={() => {
-              if (!ensureAuthenticated()) return;
-              if (currentUser?.plan !== 'premium' && currentUser?.plan !== 'ultra') {
-                setPlansModalOpen(true);
-                return;
-              }
-              setHealthModalOpen(true);
-            }}
-            onOpenFoodScan={() => {
-              if (!ensureAuthenticated()) return;
-              if (currentUser?.plan !== 'ultra' && currentUser?.plan !== 'premium') {
-                setPlansModalOpen(true);
-                return;
-              }
-              setFoodModalOpen(true);
-            }}
+            onOpenAiChat={handleOpenAiChatWithTrial}
+            onOpenAlarm={handleOpenAlarmWithTrial}
+            onOpenHealthPlan={handleOpenHealthPlanWithTrial}
+            onOpenFoodScan={handleOpenFoodScanWithTrial}
             onOpenPrescriptionScan={() => {
-              setActiveTab('drugs');
+              setHealthSubTab('drugs');
+              setActiveTab('health');
               triggerHaptic('light');
             }}
             onOpenPlans={() => setPlansModalOpen(true)}
             triggerHaptic={triggerHaptic}
+            demoAlarmCount={demoAlarmCount}
+            demoAlarmPhase={demoAlarmPhase}
+            demoCountdownSec={demoCountdownSec}
+            demoTargetTimeStr={demoTargetTimeStr}
+            onStartDemoAlarm={handleStartDemoAlarm}
           />
         )}
 
         {activeTab === 'health' && (
-          <HealthDashboardView
-            user={currentUser}
-            t={t}
-            onOpenAiChat={() => {
-              if (!ensureAuthenticated()) return;
-              if (currentUser?.plan !== 'premium' && currentUser?.plan !== 'ultra') {
-                setPlansModalOpen(true);
-                return;
-              }
-              setChatModalOpen(true);
-            }}
-            onOpenAlarm={() => {
-              if (!ensureAuthenticated()) return;
-              if (currentUser?.plan !== 'ultra') {
-                setPlansModalOpen(true);
-                return;
-              }
-              setAlarmModalOpen(true);
-            }}
-            onOpenHealthPlan={() => {
-              if (!ensureAuthenticated()) return;
-              if (currentUser?.plan !== 'premium' && currentUser?.plan !== 'ultra') {
-                setPlansModalOpen(true);
-                return;
-              }
-              setHealthModalOpen(true);
-            }}
-            onOpenFoodScan={() => {
-              if (!ensureAuthenticated()) return;
-              if (currentUser?.plan !== 'ultra' && currentUser?.plan !== 'premium') {
-                setPlansModalOpen(true);
-                return;
-              }
-              setFoodModalOpen(true);
-            }}
-            onOpenPlans={() => setPlansModalOpen(true)}
-            triggerHaptic={triggerHaptic}
-          />
+          <div className="space-y-4">
+            {/* Health & Drugs Sub-Navigation Switcher */}
+            <div className="w-full max-w-lg mx-auto grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1 border border-slate-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setHealthSubTab('monitor');
+                  triggerHaptic('light');
+                }}
+                className={`py-2 px-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  healthSubTab === 'monitor'
+                    ? 'bg-white text-teal-800 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <HeartPulse className="h-4 w-4 text-teal-600" />
+                <span>Monitoring & Reja</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setHealthSubTab('drugs');
+                  triggerHaptic('light');
+                }}
+                className={`py-2 px-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  healthSubTab === 'drugs'
+                    ? 'bg-white text-emerald-800 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Pill className="h-4 w-4 text-emerald-600" />
+                <span>Retsept & Dorilar</span>
+              </button>
+            </div>
+
+            {healthSubTab === 'monitor' ? (
+              <HealthDashboardView
+                user={currentUser}
+                t={t}
+                onOpenAiChat={handleOpenAiChatWithTrial}
+                onOpenAlarm={handleOpenAlarmWithTrial}
+                onOpenHealthPlan={handleOpenHealthPlanWithTrial}
+                onOpenFoodScan={handleOpenFoodScanWithTrial}
+                onOpenPlans={() => setPlansModalOpen(true)}
+                triggerHaptic={triggerHaptic}
+              />
+            ) : (
+              <DrugsAndScannerView
+                user={currentUser}
+                t={t}
+                lang={lang}
+                samples={samples}
+                isLoading={isLoading}
+                onScanFile={handleScanFile}
+                onRunSample={handleRunSample}
+                onSelectDrugId={handleSelectDrugId}
+                onAiLookupQuery={handleAiLookupQuery}
+                analysis={analysis}
+                selectedMap={selectedMap}
+                onSelectOption={(itemId, optionKey, analog) => {
+                  setSelectedMap((prev) => ({
+                    ...prev,
+                    [itemId]: { key: optionKey, analog },
+                  }));
+                  triggerHaptic('light');
+                }}
+                totalPrescribedUzs={totalPrescribedUzs}
+                totalSelectedUzs={totalSelectedUzs}
+                onShowPharmacist={() => setPharmacistModalOpen(true)}
+                onShareTelegram={handleShareTelegram}
+                onCopyChecklist={handleCopyChecklist}
+                onResetAnalysis={() => {
+                  setAnalysis(null);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                triggerHaptic={triggerHaptic}
+              />
+            )}
+          </div>
         )}
 
         {(activeTab === 'drugs' || activeTab === 'scanner' || activeTab === 'search') && (
