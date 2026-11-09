@@ -216,8 +216,8 @@ interface NotificationItem {
 
 export function AdminApp() {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('doriscan_admin_token'));
-  const [username, setUsername] = useState('aminovweb');
-  const [password, setPassword] = useState('aminov12345$$');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -567,9 +567,11 @@ export function AdminApp() {
               <input
                 type="text"
                 required
+                autoComplete="username"
+                placeholder="Admin logini"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-medium focus:border-emerald-500 focus:outline-none transition"
+                className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-medium focus:border-emerald-500 focus:outline-none transition placeholder:text-slate-500"
               />
             </div>
             <div>
@@ -577,9 +579,11 @@ export function AdminApp() {
               <input
                 type="password"
                 required
+                autoComplete="current-password"
+                placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-medium focus:border-emerald-500 focus:outline-none transition"
+                className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-medium focus:border-emerald-500 focus:outline-none transition placeholder:text-slate-500"
               />
             </div>
 

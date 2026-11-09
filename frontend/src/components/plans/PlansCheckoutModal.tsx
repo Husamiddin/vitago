@@ -73,14 +73,14 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
     ? 'Mastercard 💳'
     : 'Bank Kartasi';
 
-  // Base pricing matching updated plan standards (Premium: 15k/150k, Ultra: 40k/450k)
+  // Base pricing matching updated plan standards (Premium: 15k/150k, Ultra: 40k/400k)
   const basePrice =
     selectedPlan === 'premium'
       ? billingCycle === 'annually'
         ? 150000
         : 15000
       : billingCycle === 'annually'
-      ? 450000
+      ? 400000
       : 40000;
 
   const finalPrice = Math.max(0, basePrice - promoDiscount);
@@ -263,7 +263,7 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
               >
                 <span>Yillik to'lov</span>
                 <span className="text-[10px] bg-amber-400 text-slate-950 px-1.5 py-0.2 rounded-full font-black">
-                  -30 000 so'm
+                  {selectedPlan === 'ultra' ? '-80 000 so\'m' : '-30 000 so\'m'}
                 </span>
               </button>
             </div>
@@ -353,7 +353,7 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
                   </div>
                   <div className="text-right">
                     <div className="text-base font-black text-purple-700">
-                      {billingCycle === 'annually' ? '450 000' : '40 000'} so'm
+                      {billingCycle === 'annually' ? '400 000' : '40 000'} so'm
                     </div>
                     <span className="text-[10px] text-slate-400">/{billingCycle === 'annually' ? 'yil' : 'oy'}</span>
                   </div>
@@ -361,7 +361,7 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
 
                 {billingCycle === 'annually' && (
                   <div className="mt-2 text-[11px] font-bold text-purple-800 bg-purple-100/70 p-2 rounded-xl">
-                    🎁 Yillik to'lovda 30 000 so'm chegirma (450 000 so'm/yil)!
+                    🎁 Yillik to'lovda 80 000 so'm chegirma (400 000 so'm/yil)!
                   </div>
                 )}
 

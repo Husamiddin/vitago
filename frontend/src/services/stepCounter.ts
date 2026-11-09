@@ -44,12 +44,21 @@ export class StepCounterManager {
 
   private constructor() {
     this.currentSteps = getSavedDailySteps();
+    // Auto-check midnight rollover every 30 seconds
+    if (typeof window !== 'undefined') {
+      window.setInterval(() => {
+        this.checkMidnightRollover();
+      }, 30000);
+    }
   }
 
   private checkMidnightRollover(): void {
     const today = getTodayDateKey();
     if (this.activeDateKey !== today) {
+      // Archive previous day's steps under old date key if needed
+      saveDailySteps(this.currentSteps);
       this.activeDateKey = today;
+      // Reset strictly to today's saved steps (which is 0 on a brand new day)
       this.currentSteps = getSavedDailySteps();
       this.notify();
     }

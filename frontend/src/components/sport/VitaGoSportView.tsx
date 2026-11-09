@@ -27,6 +27,7 @@ import {
   Utensils,
   ExternalLink,
   RefreshCw,
+  Pencil,
 } from 'lucide-react';
 import type { SupportedLang, UserProfile } from '../../types/api';
 import { SportTrackerManager, isValidWorkout, type SportTrackerState } from '../../services/sportTracker';
@@ -677,6 +678,12 @@ export const TetikSportView: React.FC<TetikSportViewProps> = ({
   const recordNavLineRef = useRef<L.Polyline | null>(null);
   const recordPolylineRef = useRef<L.Polyline | null>(null);
 
+  // Freehand Route Drawing State & Refs
+  const [isDrawRouteMode, setIsDrawRouteMode] = useState(false);
+  const isDrawingRef = useRef(false);
+  const drawPointsRef = useRef<[number, number][]>([]);
+  const freehandPolylineRef = useRef<L.Polyline | null>(null);
+
   const currentSportMeta = SPORT_OPTIONS.find((s) => s.id === selectedSport) || SPORT_OPTIONS[0];
   const currentSportName = currentSportMeta.names[lang];
   const kcalPerKmForUser = Math.round(currentSportMeta.kcalPerKgKm * userWeightKg);
@@ -773,9 +780,82 @@ export const TetikSportView: React.FC<TetikSportViewProps> = ({
     userMarkerRef.current = L.marker(userPos, { icon: userIcon }).addTo(map);
 
     map.on('click', (e: L.LeafletMouseEvent) => {
+      if (isDrawingRef.current) return;
       const clicked: [number, number] = [e.latlng.lat, e.latlng.lng];
       buildNavigationRoute(tracker.getState().userPos, clicked, tracker.getState().selectedSport);
     });
+
+    const handleMouseDown = (e: L.LeafletMouseEvent) => {
+      // Check if draw mode is on
+      if (!map.getContainer().classList.contains('draw-active')) return;
+      isDrawingRef.current = true;
+      drawPointsRef.current = [[e.latlng.lat, e.latlng.lng]];
+      if (freehandPolylineRef.current) {
+        freehandPolylineRef.current.remove();
+      }
+      freehandPolylineRef.current = L.polyline(drawPointsRef.current, {
+        color: '#16A68A',
+        weight: 5,
+        opacity: 0.9,
+      }).addTo(map);
+    };
+
+    const handleMouseMove = (e: L.LeafletMouseEvent) => {
+      if (!isDrawingRef.current) return;
+      const pt: [number, number] = [e.latlng.lat, e.latlng.lng];
+      const last = drawPointsRef.current[drawPointsRef.current.length - 1];
+      if (!last || Math.abs(pt[0] - last[0]) > 0.0001 || Math.abs(pt[1] - last[1]) > 0.0001) {
+        drawPointsRef.current.push(pt);
+        if (freehandPolylineRef.current) {
+          freehandPolylineRef.current.setLatLngs(drawPointsRef.current);
+        }
+      }
+    };
+
+    const handleMouseUp = async () => {
+      if (!isDrawingRef.current) return;
+      isDrawingRef.current = false;
+      const pts = drawPointsRef.current;
+      if (pts.length < 2) return;
+
+      const sampled: [number, number][] = [];
+      const step = Math.max(1, Math.floor(pts.length / 12));
+      for (let i = 0; i < pts.length; i += step) {
+        sampled.push(pts[i]);
+      }
+      if (sampled[sampled.length - 1] !== pts[pts.length - 1]) {
+        sampled.push(pts[pts.length - 1]);
+      }
+
+      const profile = tracker.getState().selectedSport.includes('ride') ? 'bike' : 'foot';
+      const coordsQuery = sampled.map((p) => `${p[1]},${p[0]}`).join(';');
+      try {
+        const url = `https://router.project-osrm.org/route/v1/${profile}/${coordsQuery}?overview=full&geometries=geojson`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data?.routes?.[0]?.geometry?.coordinates) {
+          const snappedCoords: [number, number][] = data.routes[0].geometry.coordinates.map(
+            (c: [number, number]) => [c[1], c[0]]
+          );
+          const distKm = Number((data.routes[0].distance / 1000).toFixed(2));
+          tracker.setDestination(pts[pts.length - 1], snappedCoords, distKm);
+        } else {
+          tracker.setDestination(pts[pts.length - 1], pts, 1.2);
+        }
+      } catch {
+        tracker.setDestination(pts[pts.length - 1], pts, 1.2);
+      }
+
+      if (freehandPolylineRef.current) {
+        freehandPolylineRef.current.remove();
+        freehandPolylineRef.current = null;
+      }
+      setIsDrawRouteMode(false);
+    };
+
+    map.on('mousedown', handleMouseDown);
+    map.on('mousemove', handleMouseMove);
+    map.on('mouseup', handleMouseUp);
 
     leafletMapRef.current = map;
 
@@ -796,6 +876,26 @@ export const TetikSportView: React.FC<TetikSportViewProps> = ({
       routeLineRef.current = null;
     };
   }, [bottomTab, buildNavigationRoute, tracker]);
+
+  // Handle Freehand Drawing Mode map interaction
+  useEffect(() => {
+    const map = leafletMapRef.current;
+    if (!map) return;
+
+    if (isDrawRouteMode) {
+      map.dragging.disable();
+      map.touchZoom.disable();
+      map.doubleClickZoom.disable();
+    } else {
+      map.dragging.enable();
+      map.touchZoom.enable();
+      map.doubleClickZoom.enable();
+      if (freehandPolylineRef.current) {
+        freehandPolylineRef.current.remove();
+        freehandPolylineRef.current = null;
+      }
+    }
+  }, [isDrawRouteMode]);
 
   // Sync user marker & destination route on "Maps" tab
   useEffect(() => {
@@ -1756,6 +1856,40 @@ export const TetikSportView: React.FC<TetikSportViewProps> = ({
           {/* Interactive Leaflet Map Container */}
           <div className="relative w-full h-[380px] sm:h-[430px] rounded-2xl overflow-hidden border border-slate-300 shadow-sm bg-slate-100">
             <div ref={mapContainerRef} className="w-full h-full z-10" />
+
+            {/* Freehand Route Drawing Toggle */}
+            <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic?.('light');
+                  setIsDrawRouteMode((prev) => {
+                    const next = !prev;
+                    const c = mapContainerRef.current;
+                    if (c) {
+                      if (next) c.classList.add('draw-active');
+                      else c.classList.remove('draw-active');
+                    }
+                    return next;
+                  });
+                }}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-black shadow-lg border transition-all cursor-pointer ${
+                  isDrawRouteMode
+                    ? 'bg-teal-600 text-white border-teal-500 ring-2 ring-teal-400/50 animate-pulse'
+                    : 'bg-white/95 backdrop-blur text-slate-800 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                <span>{isDrawRouteMode ? "Chizilmoqda... Barmoq bilan chizing" : "✏️ Yo'nalish chizish"}</span>
+              </button>
+            </div>
+
+            {/* Draw mode active guide banner */}
+            {isDrawRouteMode && (
+              <div className="absolute top-14 inset-x-3 z-20 rounded-xl bg-slate-900/85 backdrop-blur text-white text-[11px] font-bold p-2 text-center shadow-lg animate-in fade-in">
+                👉 Xaritada barmog'ingiz yoki sichqoncha bilan erkin marshrut chizing — ko'chalarga avtomatik ulanadi!
+              </div>
+            )}
 
             {/* Recenter GPS Button */}
             <button

@@ -690,7 +690,7 @@ export const App: React.FC = () => {
           lang={lang}
           onLangChange={handleLangChange}
           onBackToMain={() => {
-            setActiveTab('scanner');
+            setActiveTab('home');
             triggerHaptic('light');
           }}
           onOpenPlans={() => setPlansModalOpen(true)}
@@ -730,7 +730,7 @@ export const App: React.FC = () => {
               <BrandLogo
                 compact={isCompactAppLayout}
                 onClick={() => {
-                  setActiveTab('scanner');
+                  setActiveTab('home');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               />
@@ -960,30 +960,25 @@ export const App: React.FC = () => {
           isCompactAppLayout ? 'max-w-2xl pb-28' : 'max-w-6xl pb-16'
         }`}
       >
-        {/* Hero Header (Compact in Telegram Mini App, Expansive on Web/PC) */}
+        {/* Hero Header (Shown on Desktop/PC Web, hidden in Compact Mobile/Mini App so it matches compact layout) */}
         {(activeTab === 'scanner' || activeTab === 'search') && (
-          <div className={`${isTelegramMiniApp ? 'mb-3.5 text-left' : 'mb-7 text-center'} w-full max-w-full`}>
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-0.5 sm:px-3.5 sm:py-1 text-[11px] sm:text-xs font-bold text-emerald-800">
-              <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-emerald-600 shrink-0" />
-              <span className="truncate">{t.sloganBadge}</span>
-            </div>
+          <div className="w-full max-w-full">
+            {!isCompactAppLayout && (
+              <div className="mb-7 text-center w-full max-w-full">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-0.5 sm:px-3.5 sm:py-1 text-[11px] sm:text-xs font-bold text-emerald-800">
+                  <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-emerald-600 shrink-0" />
+                  <span className="truncate">{t.sloganBadge}</span>
+                </div>
 
-            <h1
-              className={`mt-2 font-black tracking-tight text-slate-900 leading-snug break-words ${
-                isTelegramMiniApp
-                  ? 'text-lg sm:text-2xl'
-                  : 'text-2xl sm:text-4xl lg:text-[42px] lg:leading-tight'
-              }`}
-            >
-              {t.heroTitle}
-            </h1>
+                <h1 className="mt-2 font-black tracking-tight text-slate-900 leading-snug break-words text-2xl sm:text-4xl lg:text-[42px] lg:leading-tight">
+                  {t.heroTitle}
+                </h1>
 
-            {!isTelegramMiniApp && (
-              <p className="mx-auto mt-3 max-w-2xl text-sm sm:text-base text-slate-600 leading-relaxed">
-                {t.heroSubtitle}
-              </p>
+                <p className="mx-auto mt-3 max-w-2xl text-sm sm:text-base text-slate-600 leading-relaxed">
+                  {t.heroSubtitle}
+                </p>
+              </div>
             )}
-
             {/* Real-Time Clock & Date + AI Daily Health Plan Banner */}
             <div
               onClick={() => {
@@ -1382,6 +1377,10 @@ export const App: React.FC = () => {
                 return;
               }
               setFoodModalOpen(true);
+            }}
+            onNavigateToSport={(_sportType, _targetKm) => {
+              handleOpenSport();
+              triggerHaptic('light');
             }}
             triggerHaptic={triggerHaptic}
           />

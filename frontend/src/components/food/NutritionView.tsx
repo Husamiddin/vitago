@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Utensils,
   Camera,
@@ -9,7 +9,14 @@ import {
   Apple,
   Fish,
   Wheat,
-  Plus,
+  Clock,
+  Settings2,
+  Trophy,
+  Footprints,
+  AlertCircle,
+  CheckCircle2,
+  X,
+  Bell,
 } from 'lucide-react';
 import type { UserProfile } from '../../types/api';
 import type { TranslationDict } from '../../i18n/translations';
@@ -18,32 +25,154 @@ interface NutritionViewProps {
   user: UserProfile | null;
   t: TranslationDict;
   onOpenFoodScan: () => void;
+  onNavigateToSport?: (sportType?: 'run' | 'walk', targetKm?: number) => void;
   triggerHaptic?: (type?: 'light' | 'success') => void;
 }
+
+interface MealSchedule {
+  weekKey: string;
+  editCount: number;
+  unlockedByChallenge: boolean;
+  meals: {
+    breakfast: string;
+    lunch: string;
+    snack: string;
+    dinner: string;
+  };
+}
+
+const SCHEDULE_STORAGE_KEY = 'tetik_meal_schedule_v2';
+const CHALLENGE_STORAGE_KEY = 'tetik_meal_challenge_status';
+
+const getCurrentWeekKey = (): string => {
+  const now = new Date();
+  const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return `${d.getUTCFullYear()}-W${weekNo}`;
+};
 
 export const NutritionView: React.FC<NutritionViewProps> = ({
   user,
   t,
   onOpenFoodScan,
+  onNavigateToSport,
   triggerHaptic,
 }) => {
   const currentKcal = user?.daily_kcal || 850;
   const targetKcal = 2000;
   const kcalPercent = Math.min(100, Math.round((currentKcal / targetKcal) * 100));
 
-  // Circular progress calculations for 850 kcal
+  // Circular progress calculations
   const radius = 38;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (kcalPercent / 100) * circumference;
 
-  const meals = [
+  // 4 Meals Schedule State & Weekly Change Rule
+  const [schedule, setSchedule] = useState<MealSchedule>(() => {
+    const currentWeek = getCurrentWeekKey();
+    try {
+      const saved = localStorage.getItem(SCHEDULE_STORAGE_KEY);
+      if (saved) {
+        const parsed: MealSchedule = JSON.parse(saved);
+        if (parsed.weekKey === currentWeek) {
+          return parsed;
+        }
+      }
+    } catch {}
+    return {
+      weekKey: currentWeek,
+      editCount: 0,
+      unlockedByChallenge: false,
+      meals: {
+        breakfast: '08:30',
+        lunch: '13:00',
+        snack: '16:30',
+        dinner: '19:30',
+      },
+    };
+  });
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const [editTimes, setEditTimes] = useState(schedule.meals);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState(false);
+
+  // Sync state to local storage
+  const saveSchedule = (next: MealSchedule) => {
+    setSchedule(next);
+    localStorage.setItem(SCHEDULE_STORAGE_KEY, JSON.stringify(next));
+  };
+
+  const handleOpenEdit = () => {
+    triggerHaptic?.('light');
+    const currentWeek = getCurrentWeekKey();
+    let currentSched = schedule;
+    if (schedule.weekKey !== currentWeek) {
+      currentSched = {
+        ...schedule,
+        weekKey: currentWeek,
+        editCount: 0,
+        unlockedByChallenge: false,
+      };
+      saveSchedule(currentSched);
+    }
+
+    // Check challenge condition: If edited 1 or more times this week and not yet unlocked by exercise
+    if (currentSched.editCount >= 1 && !currentSched.unlockedByChallenge) {
+      setShowChallengeModal(true);
+    } else {
+      setEditTimes(currentSched.meals);
+      setShowEditModal(true);
+    }
+  };
+
+  const handleSaveTimes = (e: React.FormEvent) => {
+    e.preventDefault();
+    triggerHaptic?.('success');
+    const next: MealSchedule = {
+      ...schedule,
+      editCount: schedule.editCount + 1,
+      unlockedByChallenge: false,
+      meals: editTimes,
+    };
+    saveSchedule(next);
+    setShowEditModal(false);
+    setSaveSuccessMsg(true);
+    setTimeout(() => setSaveSuccessMsg(false), 4000);
+  };
+
+  const handleStartSportChallenge = (sportType: 'run' | 'walk', targetKm: number) => {
+    triggerHaptic?.('light');
+    setShowChallengeModal(false);
+    try {
+      localStorage.setItem(
+        CHALLENGE_STORAGE_KEY,
+        JSON.stringify({
+          active: true,
+          sportType,
+          targetKm,
+          weekKey: schedule.weekKey,
+          startedAt: new Date().toISOString(),
+        })
+      );
+    } catch {}
+
+    if (onNavigateToSport) {
+      onNavigateToSport(sportType, targetKm);
+    }
+  };
+
+  const mealCards = [
     {
       id: 'breakfast',
       title: 'Nonushta',
       desc: "Suli bo'tqasi, yong'oq va rezavorlar",
       kcal: 280,
       image: '/food/breakfast.jpg',
-      time: '08:30',
+      time: schedule.meals.breakfast,
       badge: 'Sog`lom boshlanish',
     },
     {
@@ -52,8 +181,17 @@ export const NutritionView: React.FC<NutritionViewProps> = ({
       desc: 'Tuxumli yangi avokado va barra sabzavotli salat',
       kcal: 320,
       image: '/food/salad.jpg',
-      time: '13:00',
-      badge: 'Past yog`li',
+      time: schedule.meals.lunch,
+      badge: 'Foydali yog` & oqsil',
+    },
+    {
+      id: 'snack',
+      title: 'Ikkinchi tushlik (Poldnik)',
+      desc: 'Yangi uzilgan mevalar, yong‘oq yoki tabiiy qatiq',
+      kcal: 140,
+      image: '/food/fruits.jpg',
+      time: schedule.meals.snack,
+      badge: 'Metabolizm quvvati',
     },
     {
       id: 'dinner',
@@ -61,24 +199,23 @@ export const NutritionView: React.FC<NutritionViewProps> = ({
       desc: 'Dimlangan tovuq filesi va pishirilgan sabzavotlar',
       kcal: 450,
       image: '/food/lunch.jpg',
-      time: '19:30',
-      badge: 'Yuqori oqsil',
-    },
-    {
-      id: 'snack',
-      title: 'Yengil tamaddi',
-      desc: 'Yangi uzilgan sitrus va vitaminli mevalar',
-      kcal: 120,
-      image: '/food/fruits.jpg',
-      time: '16:00',
-      badge: 'Vitamin C',
+      time: schedule.meals.dinner,
+      badge: 'Yengil hazm',
     },
   ];
 
   return (
     <div className="w-full max-w-lg mx-auto space-y-4 sm:space-y-5 pb-24 pt-1 animate-in fade-in duration-300">
-      {/* 1. HERO CALORIE SUMMARY CARD (from Image 1 Screen 6) */}
-      <div className="rounded-3xl bg-linear-to-br from-white via-orange-50/30 to-amber-50/50 border border-slate-200 p-5 shadow-xl shadow-slate-200/50 flex items-center justify-between gap-4">
+      {/* SUCCESS TOAST */}
+      {saveSuccessMsg && (
+        <div className="p-3.5 rounded-2xl bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-500/25 flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <span>4 mahal ovqatlanish jadvali saqlandi! AI Murabbiy eslatmalarni yoqdi.</span>
+        </div>
+      )}
+
+      {/* 1. HERO CALORIE SUMMARY CARD */}
+      <div className="rounded-3xl bg-linear-to-br from-white via-orange-50/30 to-amber-50/50 border border-slate-200 p-5 shadow-xl shadow-slate-200/50 flex items-center justify-between gap-4 apple-card">
         {/* Left Side: Healthy Bowl image preview */}
         <div className="relative w-28 h-28 rounded-2xl overflow-hidden shrink-0 shadow-md border-2 border-white">
           <img
@@ -152,11 +289,76 @@ export const NutritionView: React.FC<NutritionViewProps> = ({
         <Sparkles className="h-4 w-4 text-amber-200" />
       </button>
 
-      {/* 3. MACRONUTRIENT BARS */}
-      <div className="rounded-3xl bg-white border border-slate-200 p-4 shadow-sm space-y-3">
-        <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
-          Makronutrientlar Balansi
-        </h4>
+      {/* 3. 4 MAHAL OVQATLANISH GRAFIGI & AI MURABBIY CARD */}
+      <div className="rounded-3xl bg-white border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-3 apple-card">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+              <Clock className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-900">4 Mahal Ovqatlanish Grafigi</h3>
+              <p className="text-[11px] text-slate-500 font-semibold">AI Murabbiy Telegram & Push eslatmasi</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleOpenEdit}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black transition cursor-pointer"
+          >
+            <Settings2 className="h-3.5 w-3.5" />
+            <span>Sozlash</span>
+          </button>
+        </div>
+
+        {/* 4 Time Badges Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+          <div className="p-2.5 rounded-2xl bg-orange-50/60 border border-orange-100 text-center">
+            <span className="text-[10px] font-bold text-orange-700 block">Nonushta</span>
+            <span className="text-sm font-black text-slate-900 mt-0.5 block">{schedule.meals.breakfast}</span>
+            <span className="text-[9px] text-orange-600/80 font-semibold">Energiya</span>
+          </div>
+
+          <div className="p-2.5 rounded-2xl bg-amber-50/60 border border-amber-100 text-center">
+            <span className="text-[10px] font-bold text-amber-700 block">Tushlik</span>
+            <span className="text-sm font-black text-slate-900 mt-0.5 block">{schedule.meals.lunch}</span>
+            <span className="text-[9px] text-amber-600/80 font-semibold">To'yimli</span>
+          </div>
+
+          <div className="p-2.5 rounded-2xl bg-teal-50/60 border border-teal-100 text-center">
+            <span className="text-[10px] font-bold text-teal-700 block">Ikkinchi tushlik</span>
+            <span className="text-sm font-black text-slate-900 mt-0.5 block">{schedule.meals.snack}</span>
+            <span className="text-[9px] text-teal-600/80 font-semibold">Poldnik</span>
+          </div>
+
+          <div className="p-2.5 rounded-2xl bg-indigo-50/60 border border-indigo-100 text-center">
+            <span className="text-[10px] font-bold text-indigo-700 block">Kechki ovqat</span>
+            <span className="text-sm font-black text-slate-900 mt-0.5 block">{schedule.meals.dinner}</span>
+            <span className="text-[9px] text-indigo-600/80 font-semibold">Yengil</span>
+          </div>
+        </div>
+
+        <div className="p-2.5 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center justify-between text-[11px]">
+          <div className="flex items-center gap-1.5 text-slate-600 font-medium">
+            <Bell className="h-3.5 w-3.5 text-orange-500" />
+            <span>AI Murabbiy belgilangan vaqtda rasm so‘raydi</span>
+          </div>
+          <span className="text-[10px] font-bold text-slate-500">
+            {schedule.editCount === 0 ? "Haftalik o'zgartirish: 1 ta erkin" : "2-o'zgartirish: Sport sharti bilan"}
+          </span>
+        </div>
+      </div>
+
+      {/* 4. MACRONUTRIENT BARS (Foydali yog'lar ta'kidlangan) */}
+      <div className="rounded-3xl bg-white border border-slate-200 p-4 shadow-sm space-y-3 apple-card">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+            Makronutrientlar Balansi
+          </h4>
+          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+            Biologik muvozanat
+          </span>
+        </div>
         <div className="grid grid-cols-3 gap-2.5 text-center">
           <div className="p-2.5 rounded-2xl bg-blue-50/70 border border-blue-100">
             <span className="text-[10px] font-bold text-blue-600 flex items-center justify-center gap-1">
@@ -183,7 +385,7 @@ export const NutritionView: React.FC<NutritionViewProps> = ({
           <div className="p-2.5 rounded-2xl bg-rose-50/70 border border-rose-100">
             <span className="text-[10px] font-bold text-rose-600 flex items-center justify-center gap-1">
               <Apple className="h-3 w-3" />
-              Yog'lar
+              Sog‘lom Yog‘
             </span>
             <div className="text-sm font-black text-slate-900 mt-0.5">28g / 55g</div>
             <div className="w-full bg-rose-100 rounded-full h-1.5 mt-1.5 overflow-hidden">
@@ -191,9 +393,12 @@ export const NutritionView: React.FC<NutritionViewProps> = ({
             </div>
           </div>
         </div>
+        <p className="text-[10px] text-slate-500 leading-relaxed text-center font-medium">
+          💡 <b>Eslatma:</b> To'yinmagan sog'lom yog'lar (zaytun moyi, yong'oq, tuxum) gormonlar va miya quvvati uchun biologik zarur.
+        </p>
       </div>
 
-      {/* 4. BUGUNGI MENYU SECTION (from Image 1) */}
+      {/* 5. BUGUNGI MENYU SECTION */}
       <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-sm sm:text-base font-black text-slate-900">
@@ -206,10 +411,10 @@ export const NutritionView: React.FC<NutritionViewProps> = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {meals.map((m) => (
+          {mealCards.map((m) => (
             <div
               key={m.id}
-              className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-orange-200 transition"
+              className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-orange-200 transition apple-card"
             >
               <img
                 src={m.image}
@@ -234,6 +439,154 @@ export const NutritionView: React.FC<NutritionViewProps> = ({
           ))}
         </div>
       </div>
+
+      {/* TIME PICKER MODAL */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-orange-600" />
+                <h3 className="text-base font-black text-slate-900">4 Mahal Ovqatlanish Vaqtlari</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEditModal(false)}
+                className="p-1 rounded-xl text-slate-400 hover:text-slate-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTimes} className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">🌅 1. Nonushta vaqti</label>
+                <input
+                  type="time"
+                  required
+                  value={editTimes.breakfast}
+                  onChange={(e) => setEditTimes({ ...editTimes, breakfast: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 focus:border-orange-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">☀️ 2. Tushlik vaqti</label>
+                <input
+                  type="time"
+                  required
+                  value={editTimes.lunch}
+                  onChange={(e) => setEditTimes({ ...editTimes, lunch: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 focus:border-orange-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">🍎 3. Ikkinchi tushlik (Poldnik)</label>
+                <input
+                  type="time"
+                  required
+                  value={editTimes.snack}
+                  onChange={(e) => setEditTimes({ ...editTimes, snack: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 focus:border-orange-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">🌙 4. Kechki ovqat vaqti</label>
+                <input
+                  type="time"
+                  required
+                  value={editTimes.dinner}
+                  onChange={(e) => setEditTimes({ ...editTimes, dinner: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 focus:border-orange-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-orange-50 text-[11px] text-orange-800 font-medium leading-relaxed">
+                🔔 <b>AI Murabbiy:</b> Belgilangan har bir vaqtda Telegram orqali sizga xabar yuborib, taom va ichimlik rasmini so‘raydi.
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white font-black text-xs shadow-md shadow-orange-600/25"
+                >
+                  Saqlash
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* GAMIFICATION CHALLENGE MODAL (Haftada 2-marta o'zgartirish uchun) */}
+      {showChallengeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-5 sm:p-6 shadow-2xl border border-orange-200 space-y-4 text-center">
+            <div className="h-14 w-14 rounded-2xl bg-orange-100 text-orange-600 mx-auto flex items-center justify-center shadow-inner">
+              <Trophy className="h-7 w-7" />
+            </div>
+
+            <div>
+              <h3 className="text-base sm:text-lg font-black text-slate-900">
+                Haftalik Intizom Sharti!
+              </h3>
+              <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                Siz ushbu haftada ovqatlanish jadvalingizni allaqachon bir marta belgilab bo‘ldingiz. 
+                Metabolizm va kun tartibini buzmaslik uchun jadvalni <b>2-marta o‘zgartirish sport vazifasi</b> bilan ochiladi:
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-orange-50 border border-orange-200/80 text-left space-y-2">
+              <div className="text-xs font-black text-orange-950 flex items-center gap-1.5">
+                <Footprints className="h-4 w-4 text-orange-600" />
+                <span>Quyidagi 2 ta vazifadan birini bajaring:</span>
+              </div>
+              <ul className="text-[11px] text-slate-700 font-semibold space-y-1 pl-1">
+                <li>• <b>🚶 2 km</b> piyoda yurish</li>
+                <li>• <b>🏃 1 km</b> yugurish</li>
+              </ul>
+              <p className="text-[10px] text-slate-500 font-medium">
+                Vazifa bajarilgach, haftalik jadvalni tahrirlash avtomatik ochiladi!
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={() => handleStartSportChallenge('run', 1.0)}
+                className="w-full py-3 px-4 rounded-2xl bg-linear-to-r from-orange-500 to-amber-600 text-white text-xs font-black shadow-md shadow-orange-500/25 hover:opacity-95 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>🏃 1 km Yugurishni boshlash</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleStartSportChallenge('walk', 2.0)}
+                className="w-full py-3 px-4 rounded-2xl bg-slate-900 text-white text-xs font-black hover:bg-slate-800 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>🚶 2 km Yurishni boshlash</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowChallengeModal(false)}
+                className="w-full py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold cursor-pointer"
+              >
+                Hozir emas
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
