@@ -204,7 +204,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({
             onClick={() => handlePeriod('week')}
             className={`px-7 py-1.5 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
               period === 'week'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                ? 'bg-[#16A68A] text-white shadow-md shadow-[#16A68A]/30'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -215,7 +215,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({
             onClick={() => handlePeriod('month')}
             className={`px-7 py-1.5 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
               period === 'month'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                ? 'bg-[#16A68A] text-white shadow-md shadow-[#16A68A]/30'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -226,7 +226,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({
             onClick={() => handlePeriod('year')}
             className={`px-7 py-1.5 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
               period === 'year'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                ? 'bg-[#16A68A] text-white shadow-md shadow-[#16A68A]/30'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -241,7 +241,7 @@ export const StatisticsView: React.FC<StatisticsViewProps> = ({
         period={period}
         growthPercent={totalKm > 0 ? 18 : 0}
         unit="km"
-        colorScheme="blue"
+        colorScheme="emerald"
         data={bars.map((b) => ({
           label: b.label,
           value: b.km,

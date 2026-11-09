@@ -549,9 +549,9 @@ export function AdminApp() {
         <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col items-center text-center mb-6">
             <div className="h-16 w-16 rounded-2xl bg-white p-1 flex items-center justify-center shadow-xl shadow-emerald-500/25 mb-3 border border-emerald-400/40 overflow-hidden">
-              <img src="/logo.png" alt="VitaGo Logo" className="h-full w-full object-cover rounded-xl" />
+              <img src="/logo.png" alt="Tetik Logo" className="h-full w-full object-cover rounded-xl" />
             </div>
-            <h1 className="text-2xl font-black text-white tracking-tight">VitaGo Admin</h1>
+            <h1 className="text-2xl font-black text-white tracking-tight">Tetik Admin</h1>
             <p className="text-xs text-slate-400 mt-1">Platformani boshqarish paneli</p>
           </div>
 
@@ -593,7 +593,7 @@ export function AdminApp() {
           </form>
 
           <p className="mt-6 text-center text-[11px] text-slate-500">
-            VitaGo System © 2026 • Maxfiy ma'lumotlar bilan ishlash
+            Tetik System © 2026 • Maxfiy ma'lumotlar bilan ishlash
           </p>
         </div>
       </div>
@@ -620,11 +620,11 @@ export function AdminApp() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl overflow-hidden shadow-md shadow-emerald-600/30 border border-emerald-500/40 bg-white p-0.5 flex items-center justify-center shrink-0">
-              <img src="/logo.png" alt="VitaGo Logo" className="h-full w-full object-cover rounded-lg" />
+              <img src="/logo.png" alt="Tetik Logo" className="h-full w-full object-cover rounded-lg" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-black text-base tracking-tight text-white">VitaGo</span>
+                <span className="font-black text-base tracking-tight text-white">Tetik</span>
                 <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase">
                   Admin
                 </span>
@@ -1780,7 +1780,7 @@ export function AdminApp() {
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
               <h2 className="text-lg font-black text-white flex items-center gap-2 mb-4">
                 <Trophy className="h-5 w-5 text-emerald-400" />
-                <span>Yangi Sport Klubi Qo'shish (VitaGo Sport)</span>
+                <span>Yangi Sport Klubi Qo'shish (Tetik Sport)</span>
               </h2>
               <form onSubmit={handleCreateClub} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

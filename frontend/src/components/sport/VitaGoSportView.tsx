@@ -304,7 +304,7 @@ const SPORT_I18N: Record<
     gpsSearching: 'GPS aniqlanmoqda...',
     gpsMandatoryTitle: 'Joylashuvni (GPS) yoqish majburiy!',
     gpsMandatoryDesc:
-      "VitaGo ⚡ Sport bo'limida real vaqtda xarita navigatori, masofa va kaloriya hisobi ishlashi uchun qurilmangizda Joylashuv (GPS) ruxsatini bir marta yoqishingiz shart.",
+      "Tetik ⚡ Sport bo'limida real vaqtda xarita navigatori, masofa va kaloriya hisobi ishlashi uchun qurilmangizda Joylashuv (GPS) ruxsatini bir marta yoqishingiz shart.",
     gpsEnableBtn: 'Joylashuvga ruxsat berish va yoqish',
     mapTapHint: "Xaritadan boradigan manzilingiz ustiga bosing yoki yuqoridan manzil qidiring",
     searchPlacePlaceholder: "Manzil yoki ko'cha nomini yozing...",
@@ -372,7 +372,7 @@ const SPORT_I18N: Record<
     gpsSearching: 'GPS аниқланмоқда...',
     gpsMandatoryTitle: 'Жойлашувни (GPS) ёқиш мажбурий!',
     gpsMandatoryDesc:
-      'VitaGo ⚡ Sport бўлимида реал вақтда харита навигатори, масофа ва калория ҳисоби ишлаши учун қурилмангизда Жойлашув (GPS) рухсатини ёқишингиз шарт.',
+      'Tetik ⚡ Sport бўлимида реал вақтда харита навигатори, масофа ва калория ҳисоби ишлаши учун қурилмангизда Жойлашув (GPS) рухсатини ёқишингиз шарт.',
     gpsEnableBtn: 'Жойлашувга рухсат бериш ва ёқиш',
     mapTapHint: 'Харитадан борадиган манзилингиз устига босинг ёки юқоридан манзил қидиринг',
     searchPlacePlaceholder: 'Манзил ёки кўча номини ёзинг...',
@@ -440,7 +440,7 @@ const SPORT_I18N: Record<
     gpsSearching: 'Поиск GPS...',
     gpsMandatoryTitle: 'Включение геолокации (GPS) обязательно!',
     gpsMandatoryDesc:
-      'Для работы навигатора, точного замера дистанции и расхода калорий в VitaGo ⚡ Sport необходимо разрешить доступ к GPS-геолокации.',
+      'Для работы навигатора, точного замера дистанции и расхода калорий в Tetik ⚡ Sport необходимо разрешить доступ к GPS-геолокации.',
     gpsEnableBtn: 'Разрешить и включить геолокацию',
     mapTapHint: 'Нажмите на любую точку карты для построения маршрута или найдите адрес выше',
     searchPlacePlaceholder: 'Введите адрес или ориентир...',
@@ -544,7 +544,7 @@ function attachReliableTileLayer(map: L.Map) {
     'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=uz',
     {
       maxZoom: 20,
-      attribution: '© Google Maps • VitaGo ⚡ Sport',
+      attribution: '© Google Maps • Tetik ⚡ Sport',
     }
   );
   googleTiles.on('tileerror', () => {
@@ -1314,10 +1314,10 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
       {bottomTab === 'home' && (
         <div className="max-w-xl mx-auto w-full space-y-3.5 pt-2.5 px-2.5 sm:px-0">
           {/* HERO BANNER (from Image 1 Screen 3) */}
-          <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-blue-600 via-blue-700 to-indigo-800 text-white p-5 shadow-xl shadow-blue-600/20 flex items-center justify-between">
+          <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-[#081525] via-[#10233D] to-[#0D3834] text-white p-5 shadow-xl shadow-slate-900/20 flex items-center justify-between border border-teal-500/20">
             <div className="z-10 max-w-[210px] space-y-2">
-              <span className="text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-white/20 text-white">
-                ⚡ VitaGo Sport
+              <span className="text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                ⚡ Tetik Sport
               </span>
               <h2 className="text-xl sm:text-2xl font-black leading-tight tracking-tight">
                 Yangi mashg'ulot boshlang!
@@ -1325,7 +1325,7 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
               <button
                 type="button"
                 onClick={() => setSportPickerOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white text-blue-800 font-black text-xs shadow-md hover:bg-blue-50 transition active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-md transition active:scale-95 cursor-pointer"
               >
                 <span>Mashg'ulot tanlash</span>
                 <ChevronRight className="h-4 w-4" />
@@ -1616,7 +1616,7 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
                       <div className="font-black text-sm text-slate-900 truncate">
                         {currentUser
                           ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
-                          : 'VitaGo Sportchi'}
+                          : 'Tetik Sportchi'}
                       </div>
                       <div className="text-[11px] text-slate-500 flex items-center gap-1 flex-wrap mt-0.5">
                         <span>
@@ -1631,7 +1631,7 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
                           )}
                         </span>
                         <span>•</span>
-                        <span className="text-orange-600 font-bold">VitaGo ⚡ Sport</span>
+                        <span className="text-emerald-600 font-bold">Tetik ⚡ Sport</span>
                         <span>•</span>
                         <span className="inline-flex items-center gap-0.5 text-slate-600 font-semibold">
                           <TrendingUp className="h-3 w-3" />
@@ -2095,13 +2095,13 @@ export const VitaGoSportView: React.FC<VitaGoSportViewProps> = ({
         <div className="max-w-xl mx-auto w-full px-2.5 sm:px-0 pt-2 space-y-3">
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-2xl bg-rose-600 text-white font-black text-2xl flex items-center justify-center shadow-md">
-                {currentUser?.first_name ? currentUser.first_name.charAt(0).toUpperCase() : 'V'}
+              <div className="h-16 w-16 rounded-2xl bg-linear-to-tr from-[#16A68A] to-[#0A4844] text-white font-black text-2xl flex items-center justify-center shadow-md">
+                {currentUser?.first_name ? currentUser.first_name.charAt(0).toUpperCase() : 'T'}
               </div>
               <div>
-                <div className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
-                  <Zap className="h-3 w-3 fill-orange-500 text-orange-600" />
-                  <span>VitaGo ⚡ Sport • {userPlan.toUpperCase()}</span>
+                <div className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  <Zap className="h-3 w-3 fill-emerald-600 text-emerald-600" />
+                  <span>Tetik ⚡ Sport • {userPlan.toUpperCase()}</span>
                 </div>
                 <h3 className="text-xl font-black text-slate-900 mt-1">
                   {currentUser

@@ -43,7 +43,7 @@ import {
   type FeaturePreviewData,
 } from './FeaturePreviewModal';
 
-// Master catalog of all verified, real VitaGo features
+// Master catalog of all verified, real Tetik features
 const HEALTH_FEATURES: FeaturePreviewData[] = [
   {
     id: 'prescription_scanner',
@@ -76,7 +76,7 @@ const HEALTH_FEATURES: FeaturePreviewData[] = [
     iconName: 'search',
     summary: "Rasmiy bazadagi 130+ dori vositalarining narxlari va qo'llash yo'riqnomasi.",
     description:
-      "Dori nomini yoki kasallik alomatini yozing. VitaGo dorixonalaridagi aktual narxlar, dozalash, farmakologik guruh va eng yaqin analoglarni bir zumda chiqarib beradi.",
+      "Dori nomini yoki kasallik alomatini yozing. Tetik dorixonalaridagi aktual narxlar, dozalash, farmakologik guruh va eng yaqin analoglarni bir zumda chiqarib beradi.",
     howItWorks: [
       'Qidiruv satriga dori nomini yozasiz',
       "Tizim eng arzon va ishonchli analoglarini taqqoslab ko'rsatadi",
@@ -204,7 +204,7 @@ const SPORT_FEATURES: FeaturePreviewData[] = [
     iconName: 'trophy',
     summary: 'Yugurish, Trail, Piyoda yurish, Hiking, Shosse va Tog‘ velosipedi.',
     description:
-      "Har bir sport turining o'ziga xos energiya sarfi bor. VitaGo tanlangan sport turiga qarab alohida kaloriya va tezlik formulasidan foydalanadi.",
+      "Har bir sport turining o'ziga xos energiya sarfi bor. Tetik tanlangan sport turiga qarab alohida kaloriya va tezlik formulasidan foydalanadi.",
     howItWorks: [
       '7 ta yo‘nalishdan birini tanlaysiz',
       'Tizim mos energiya sarfi (masalan, piyoda ~40 kcal/km, yugurish ~75 kcal/km) ko‘rsatadi',
@@ -289,7 +289,7 @@ const LIFE_FEATURES: FeaturePreviewData[] = [
     iconName: 'alarm',
     summary: 'Buzilmas budilnik — matematik misol yechilmaguncha signal to‘xtamaydi!',
     description:
-      "Ertalab uxlab qolishdan charchadingizmi? VitaGo budilnigi chalinganda siz arifmetik misol yechishingiz yoki jismoniy harakat qilishingiz kerak. Miya uyg'onmaguncha signal o'chmaydi.",
+      "Ertalab uxlab qolishdan charchadingizmi? Tetik budilnigi chalinganda siz arifmetik misol yechishingiz yoki jismoniy harakat qilishingiz kerak. Miya uyg'onmaguncha signal o'chmaydi.",
     howItWorks: [
       'Uyg‘onish vaqtini va missiyani (masalan, hisoblash) belgilaysiz',
       'Ertalab signal chalinganda ekranda misol paydo bo‘ladi',
@@ -432,7 +432,7 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
           <div className="flex items-center gap-2.5">
             <img
               src="/logo.png"
-              alt="VitaGo"
+              alt="Tetik"
               className="h-8 w-8 rounded-xl object-contain shadow-xs bg-slate-50"
               onError={(e) => {
                 const target = e.currentTarget as HTMLImageElement;
@@ -441,8 +441,8 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
             />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-black text-slate-900 text-sm tracking-tight">VitaGo</span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
+                <span className="font-black text-slate-900 text-sm tracking-tight">Tetik</span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
                   AI Platform
                 </span>
               </div>
@@ -485,9 +485,9 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
           <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6">
             {/* Hero Banner Header */}
             <div className="text-center space-y-3 pt-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-black tracking-wide">
-                <Sparkles className="h-3.5 w-3.5 text-blue-600" />
-                VitaGo — Health • Sport • Life
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-black tracking-wide">
+                <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
+                Tetik — Health • Sport • Life
               </div>
 
               {variant === 'B' ? (
@@ -989,7 +989,7 @@ export const WelcomePageModal: React.FC<WelcomePageModalProps> = ({
                         <span className="font-bold text-slate-900 block">
                           🩺 Tibbiy mas'uliyat cheklovi:
                         </span>
-                        VitaGo platformasi taqdim etgan barcha tahlillar va AI tavsiyalari axborot
+                        Tetik platformasi taqdim etgan barcha tahlillar va AI tavsiyalari axborot
                         xarakteriga ega bo‘lib, professional shifokor ko‘rigi yoki davolash o‘rnini
                         bosa olmaydi.
                       </div>

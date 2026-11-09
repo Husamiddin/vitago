@@ -459,7 +459,7 @@ export const RemindersSettingsModal: React.FC<RemindersSettingsModalProps> = ({
                 </div>
                 <div>
                   <p className="text-xs font-black text-slate-900">Umumiy tizim yangiliklari</p>
-                  <p className="text-[10px] text-slate-400">VitaGo yangilanishlari va qiziqarli maslahatlar</p>
+                  <p className="text-[10px] text-slate-400">Tetik yangilanishlari va qiziqarli maslahatlar</p>
                 </div>
               </div>
               <input

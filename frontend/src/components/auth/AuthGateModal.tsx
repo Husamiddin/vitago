@@ -282,7 +282,7 @@ export const AuthGateModal: React.FC<AuthGateModalProps> = ({
           <div className="flex items-center justify-between">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur-xs">
               <Sparkles className="h-3.5 w-3.5 text-emerald-200" />
-              <span>VitaGo ID</span>
+              <span>Tetik ID</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="text-xs font-bold text-emerald-100">
@@ -489,10 +489,10 @@ export const AuthGateModal: React.FC<AuthGateModalProps> = ({
                       📱 Raqam: <b>{fullPhone}</b>
                     </span>
                     <a
-                      href={`https://t.me/VitaGoApp_bot?start=otp_${fullPhone.replace(/\D/g, '')}`}
+                      href={`https://t.me/TetikApp_bot?start=otp_${fullPhone.replace(/\D/g, '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-xl bg-sky-600 px-3 py-1.5 text-xs font-extrabold text-white shadow-xs hover:bg-sky-700 transition"
+                      className="inline-flex items-center gap-1 rounded-xl bg-teal-600 px-3 py-1.5 text-xs font-extrabold text-white shadow-xs hover:bg-teal-700 transition"
                     >
                       <span>✈️ Kodni Telegram'da olish</span>
                     </a>
@@ -516,7 +516,7 @@ export const AuthGateModal: React.FC<AuthGateModalProps> = ({
                   className="w-full text-center tracking-[0.5em] font-mono text-2xl font-black rounded-2xl border-2 border-emerald-500 bg-emerald-50/30 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-slate-300"
                 />
                 <p className="mt-1.5 text-center text-[11px] text-slate-500">
-                  Kod @VitaGoApp_bot chatiga yuborildi. Kod kelmagan bo'lsa, botga kirib /start bosing.
+                  Kod @TetikApp_bot chatiga yuborildi. Kod kelmagan bo'lsa, botga kirib /start bosing.
                 </p>
               </div>
 

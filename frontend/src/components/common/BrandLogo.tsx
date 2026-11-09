@@ -17,18 +17,18 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({ compact = false, onClick }
       onClick={onClick}
       className="flex items-center gap-2 sm:gap-2.5 text-left group focus:outline-none cursor-pointer shrink-0"
     >
-      {/* Official VitaGo Logo */}
-      <div className="relative flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-xl overflow-hidden shadow-sm shadow-emerald-500/20 transition-transform group-hover:scale-105 border border-emerald-200/80 bg-white">
+      {/* Official Tetik Logo */}
+      <div className="relative flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-xl overflow-hidden shadow-sm shadow-[#16A68A]/20 transition-transform group-hover:scale-105 border border-slate-700/40 bg-[#081525]">
         {!imgError ? (
           <img
             src={logoIcon}
-            alt="VitaGo Logo"
+            alt="Tetik Logo"
             onError={() => setImgError(true)}
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-600 to-teal-700 text-white font-black text-xs">
-            VG
+          <div className="flex h-full w-full items-center justify-center bg-[#081525] text-[#16A68A] font-black text-xs">
+            TT
           </div>
         )}
       </div>
@@ -36,14 +36,14 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({ compact = false, onClick }
       <div className="leading-tight shrink-0">
         <div className="flex items-center gap-1 sm:gap-1.5">
           <span className="text-base sm:text-lg font-black tracking-tight text-slate-900">
-            Vita<span className="text-emerald-600">Go</span>
+            Tetik<span className="text-[#16A68A]">.</span>
           </span>
-          <span className="rounded-md bg-emerald-100 px-1 py-0.5 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">
+          <span className="rounded-md bg-emerald-50 border border-emerald-200/80 px-1 py-0.5 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-[#16A68A]">
             AI
           </span>
         </div>
         {!compact && (
-          <p className="text-[10px] sm:text-[11px] font-medium text-slate-500 hidden sm:block">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-slate-500 hidden sm:block">
             Health • Sport • Life
           </p>
         )}

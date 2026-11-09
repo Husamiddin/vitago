@@ -74,7 +74,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-black tracking-tight">
-                {currentTab === 'how_it_works' && "VitaGo Qanday Ishlaydi?"}
+                {currentTab === 'how_it_works' && "Tetik Qanday Ishlaydi?"}
                 {currentTab === 'pricing' && "Tariflar va To'lov Narxlari"}
                 {currentTab === 'stats' && "Platforma Statistikasi"}
                 {currentTab === 'faq' && "Ko'p Beriladigan Savol-Javoblar"}
@@ -83,7 +83,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                 {currentTab === 'refund' && "Pul Qaytarish Kafolati (Refund Policy)"}
               </h3>
               <p className="text-[11px] text-blue-100 font-medium">
-                YaTT GULNOZA QULDASHEVA KOMILOVNA • vitago.uz
+                YaTT GULNOZA QULDASHEVA KOMILOVNA • tetik.uz
               </p>
             </div>
           </div>
@@ -138,7 +138,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
               <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-950 space-y-1">
                 <span className="font-black text-sm block">💡 3 ta oddiy qadamda 70% gacha tejash:</span>
                 <p className="text-xs text-blue-800">
-                  VitaGo sun'iy intellekti qimmat brend dorilarning xalqaro patentlanmagan faol moddasini (XPN / INN) aniqlab, O'zbekistondagi hamyonbop va sifatli analoglarini taqdim etadi.
+                  Tetik sun'iy intellekti qimmat brend dorilarning xalqaro patentlanmagan faol moddasini (XPN / INN) aniqlab, O'zbekistondagi hamyonbop va sifatli analoglarini taqdim etadi.
                 </p>
               </div>
 
@@ -288,7 +288,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                 <span className="font-extrabold text-slate-900 block">2. Shifokor ruxsatisiz dorini almashtirish mumkinmi?</span>
                 <p className="text-xs text-slate-600">
-                  VitaGo faqat bir xil ta'sir etuvchi moddaga ega dorilarni tavsiya qiladi. Biroq dorixonada harid qilishdan oldin dorixonachi yoki shifokoringiz bilan maslahatlashish tavsiya etiladi.
+                  Tetik faqat bir xil ta'sir etuvchi moddaga ega dorilarni tavsiya qiladi. Biroq dorixonada harid qilishdan oldin dorixonachi yoki shifokoringiz bilan maslahatlashish tavsiya etiladi.
                 </p>
               </div>
 
@@ -320,10 +320,10 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                 </p>
                 <div className="space-y-2 pt-2 border-t border-slate-200 text-slate-600 leading-relaxed">
                   <p>
-                    <b>1. Umumiy qoidalar:</b> Mazkur ommaviy oferta VitaGo axborot platformasidan (vitago.uz va mobil ilovadan) foydalanish shartlarini belgilaydi. Platformadan foydalanish shartlarga to'liq rozilikni bildiradi.
+                    <b>1. Umumiy qoidalar:</b> Mazkur ommaviy oferta Tetik axborot platformasidan (tetik.uz va mobil ilovadan) foydalanish shartlarini belgilaydi. Platformadan foydalanish shartlarga to'liq rozilikni bildiradi.
                   </p>
                   <p>
-                    <b>2. Xizmat maqsadi:</b> VitaGo dori vositalari, ularning faol moddalari (XPN) va taxminiy narxlari bo'yicha axborot-tahliliy ma'lumot taqdim etuvchi dasturiy ta'minotdir. VitaGo to'g'ridan-to'g'ri dori savdosi bilan shug'ullanmaydi.
+                    <b>2. Xizmat maqsadi:</b> Tetik dori vositalari, ularning faol moddalari (XPN) va taxminiy narxlari bo'yicha axborot-tahliliy ma'lumot taqdim etuvchi dasturiy ta'minotdir. Tetik to'g'ridan-to'g'ri dori savdosi bilan shug'ullanmaydi.
                   </p>
                   <p>
                     <b>3. Tibbiy ogohlantirish:</b> Taqdim etilayotgan barcha ma'lumotlar tanishish va maslahat xarakteriga ega. Har qanday dori vositasini qabul qilishdan oldin davolovchi shifokor ko'rsatmasiga amal qilinishi shart.
@@ -361,12 +361,12 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                     <b>4. Shifrlash:</b> Barcha ma'lumotlar SSL 256-bitli xavfsiz shifrlangan kanallar orqali uzatiladi.
                   </p>
                   <p className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-semibold mt-2">
-                    <b>5. Ilova Xavfsizligi va Tozalik Kafolati:</b> VitaGo mobil dasturi mutlaqo xavfsiz (100% rasmiy) bo'lib, unda hech qanday virus, xakerlik yoki begona josuslik kodi mavjud emas. Telefoningizga o'rnatish paytidagi ogohlantirish shunchaki tizimga ilova shaklida o'rnatish haqidagi standart texnik eslatmadir.
+                    <b>5. Ilova Xavfsizligi va Tozalik Kafolati:</b> Tetik mobil dasturi mutlaqo xavfsiz (100% rasmiy) bo'lib, unda hech qanday virus, xakerlik yoki begona josuslik kodi mavjud emas. Telefoningizga o'rnatish paytidagi ogohlantirish shunchaki tizimga ilova shaklida o'rnatish haqidagi standart texnik eslatmadir.
                   </p>
                   <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-950 font-medium mt-2 space-y-1">
                     <b className="text-blue-900 block font-black">6. Bank Kartasi Ma'lumotlari Xavfsizligi va Maxfiyligi (PCI-DSS):</b>
                     <p>
-                      • VitaGo ilovasi foydalanuvchilarning bank karta raqamlari (PAN), amal qilish muddati yoki maxfiy CVV/CVC kodlarini o'z serverlarida <b>MUTLAQO SAQLAMAYDI</b> va ularni ko'ra olmaydi.<br />
+                      • Tetik ilovasi foydalanuvchilarning bank karta raqamlari (PAN), amal qilish muddati yoki maxfiy CVV/CVC kodlarini o'z serverlarida <b>MUTLAQO SAQLAMAYDI</b> va ularni ko'ra olmaydi.<br />
                       • Barcha to'lov amaliyotlari O'zbekiston Respublikasi Markaziy Banki litsenziyasiga ega rasmiy to'lov tizimlari (Click, Payme, Uzum Bank) orqali xalqaro <b>PCI-DSS Level 1</b> xavfsizlik standarti va <b>256-bitli SSL/TLS shifrlash</b> himoyasi ostida amalga oshiriladi.<br />
                       • To'lov ma'lumotlari to'liq konfidentsial bo'lib, xakerlik yoki ruxsatsiz yechib olish xavfidan 100% himoyalangan.
                     </p>
@@ -385,14 +385,14 @@ export const LegalModal: React.FC<LegalModalProps> = ({
                   <span>100% TO'LOVNI QAYTARISH KAFOLATI (REFUND)</span>
                 </h4>
                 <p className="text-xs text-amber-900 leading-relaxed">
-                  Agar siz VitaGo Premium yoki Ultra tarifini sotib olganingizdan so'ng xizmatlar yoki funksiyalar <b>Ko'rsatilgandek ishlamasa</b>, <b>14 kun ichida</b> murojaat qilganingizda to'langan mablag'ingiz <b>100% to'liq qaytarib beriladi</b>!
+                  Agar siz Tetik Premium yoki Ultra tarifini sotib olganingizdan so'ng xizmatlar yoki funksiyalar <b>Ko'rsatilgandek ishlamasa</b>, <b>14 kun ichida</b> murojaat qilganingizda to'langan mablag'ingiz <b>100% to'liq qaytarib beriladi</b>!
                 </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2 text-slate-700 leading-relaxed">
                 <span className="font-extrabold text-slate-900 block">Pulni qaytarish tartibi:</span>
                 <p>
-                  1. Telegram orqali <b>@VitaGoApp_bot</b> ga yoki qo'llab-quvvatlash xizmatiga to'lov cheki va telefon raqamingizni yuborasiz.<br />
+                  1. Telegram orqali <b>@TetikApp_bot</b> ga yoki qo'llab-quvvatlash xizmatiga to'lov cheki va telefon raqamingizni yuborasiz.<br />
                   2. Murojaat 24 soat ichida ko'rib chiqiladi va tasdiqlanadi.<br />
                   3. Mablag' to'lov amalga oshirilgan bank kartangizga (Uzcard / Humo) 1-3 ish kunida to'liq qaytariladi.<br />
                   4. Hech qanday asossiz ushlab qolishlar yoki yashirin komissiyalar mavjud emas.

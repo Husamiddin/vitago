@@ -292,7 +292,7 @@ export const AlarmMissionModal: React.FC<AlarmMissionModalProps> = ({
 
     if ('Notification' in window && Notification.permission === 'granted') {
       try {
-        new Notification("⏰ VitaGo Budilnik: Uyg'onish vaqti!", {
+        new Notification("⏰ Tetik Budilnik: Uyg'onish vaqti!", {
           body: "Cho'mbirak, tish yuvish va tetik yuz rasmini kameradan ko'rsatib budilnikni o'chiring!",
           icon: '/favicon.png',
         });

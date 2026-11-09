@@ -303,9 +303,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           onClick={() => {
             triggerHaptic?.('light');
             if ((window as any)?.Telegram?.WebApp?.openTelegramLink) {
-              (window as any).Telegram.WebApp.openTelegramLink('https://t.me/VitaGoSupport');
+              (window as any).Telegram.WebApp.openTelegramLink('https://t.me/TetikApp_bot');
             } else {
-              window.open('https://t.me/VitaGoSupport', '_blank');
+              window.open('https://t.me/TetikApp_bot', '_blank');
             }
           }}
           className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-slate-50 rounded-2xl transition cursor-pointer group"
@@ -316,7 +316,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
             <div>
               <div className="text-xs sm:text-sm font-black text-slate-900">Yordam va qo'llab-quvvatlash</div>
-              <div className="text-[10px] text-slate-400 font-semibold">@VitaGoSupport rasmiy chat va yordam</div>
+              <div className="text-[10px] text-slate-400 font-semibold">@TetikApp_bot rasmiy bot va yordam</div>
             </div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-amber-600 transition" />

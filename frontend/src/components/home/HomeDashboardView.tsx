@@ -444,15 +444,15 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
           </button>
         </div>
 
-        {/* Bottom Banner from Image 1 */}
+        {/* Bottom Banner */}
         <div
           onClick={() => handleCardClick(() => onNavigateTab('sport'))}
-          className="p-3 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between cursor-pointer active:scale-[0.99] transition shadow-md shadow-blue-600/20"
+          className="p-3 rounded-2xl bg-linear-to-r from-[#081525] via-[#10233D] to-[#0A4844] text-white flex items-center justify-between cursor-pointer active:scale-[0.99] transition shadow-md shadow-slate-900/20 border border-teal-500/20"
         >
           <div className="flex items-center gap-2">
-            <Footprints className="h-4 w-4 text-cyan-300" />
+            <Footprints className="h-4 w-4 text-emerald-400" />
             <span className="text-xs font-black">
-              VitaGo — Sog'lom hayot sari bir qadam oldinda!
+              Tetik — Sog'lom hayot sari bir qadam oldinda!
             </span>
           </div>
           <ArrowRight className="h-4 w-4 text-white" />

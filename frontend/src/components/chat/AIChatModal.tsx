@@ -31,7 +31,7 @@ export const AIChatModal: React.FC<AIChatModalProps> = ({
   const [messages, setMessages] = useState<AIChatMessage[]>([
     {
       role: 'assistant',
-      text: "Assalomu alaykum! Men VitaGo AI shaxsiy farmatsevtingizman. Dori vositalari, ularning dozasi, nojo'ya ta'sirlari yoki muqobil analoglari bo'yicha savollaringiz bo'lsa, bemalol so'rang.",
+      text: "Assalomu alaykum! Men Tetik AI shaxsiy farmatsevtingizman. Dori vositalari, ularning dozasi, nojo'ya ta'sirlari yoki muqobil analoglari bo'yicha savollaringiz bo'lsa, bemalol so'rang.",
     },
   ]);
   const [inputText, setInputText] = useState('');

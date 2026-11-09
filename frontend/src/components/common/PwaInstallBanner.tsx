@@ -145,7 +145,7 @@ export const PwaInstallBanner: React.FC = () => {
     try {
       const link = document.createElement('a');
       link.href = appUrl;
-      link.download = 'VitaGo.apk';
+      link.download = 'Tetik.apk';
       link.target = '_blank';
       document.body.appendChild(link);
       link.click();
@@ -153,7 +153,7 @@ export const PwaInstallBanner: React.FC = () => {
     } catch {
       window.location.href = appUrl;
     }
-    setInstallStatus("VitaGo ilovasi yuklab olinmoqda...");
+    setInstallStatus("Tetik ilovasi yuklab olinmoqda...");
   };
 
   const handleSendViaTelegram = async () => {
@@ -181,21 +181,21 @@ export const PwaInstallBanner: React.FC = () => {
       setInstallStatus("Telegram chatingizga yuborilmoqda...");
       await sendApkViaTelegram(tgId, phone || '+998872207844');
 
-      // Seamlessly open chat with @VitaGoApp_bot with start=ilova parameter
+      // Seamlessly open chat with @TetikApp_bot with start=ilova parameter
       if (tg?.openTelegramLink) {
-        tg.openTelegramLink("https://t.me/VitaGoApp_bot?start=ilova");
+        tg.openTelegramLink("https://t.me/TetikApp_bot?start=ilova");
       } else {
-        window.open("https://t.me/VitaGoApp_bot?start=ilova", "_blank");
+        window.open("https://t.me/TetikApp_bot?start=ilova", "_blank");
       }
 
       localStorage.setItem('vitago_apk_installed', 'true');
-      setInstallStatus("Ilova fayli @VitaGoApp_bot chatingizga yuborildi! Telegram chatini oching.");
+      setInstallStatus("Ilova fayli @TetikApp_bot chatingizga yuborildi! Telegram chatini oching.");
     } catch {
       localStorage.setItem('vitago_apk_installed', 'true');
       if ((window as any).Telegram?.WebApp?.openTelegramLink) {
-        (window as any).Telegram.WebApp.openTelegramLink("https://t.me/VitaGoApp_bot?start=ilova");
+        (window as any).Telegram.WebApp.openTelegramLink("https://t.me/TetikApp_bot?start=ilova");
       }
-      setInstallStatus("Ilova fayli @VitaGoApp_bot chatiga yuborildi!");
+      setInstallStatus("Ilova fayli @TetikApp_bot chatiga yuborildi!");
     }
   };
 
@@ -217,7 +217,7 @@ export const PwaInstallBanner: React.FC = () => {
             </div>
             <div className="truncate">
               <span className="font-extrabold tracking-tight text-[11px] sm:text-xs">
-                VitaGo ilovasi:
+                Tetik ilovasi:
               </span>{' '}
               <span className="text-emerald-100 font-medium text-[10px] sm:text-[11px]">
                 Telefonga qulay ilova shaklida o'rnatish
@@ -254,7 +254,7 @@ export const PwaInstallBanner: React.FC = () => {
             <div className="bg-gradient-to-r from-emerald-600 to-teal-700 px-5 py-4 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Smartphone className="h-5 w-5 text-emerald-200" />
-                <h3 className="text-base sm:text-lg font-black">VitaGo Ilovasini O'rnatish</h3>
+                <h3 className="text-base sm:text-lg font-black">Tetik Ilovasini O'rnatish</h3>
               </div>
               <button
                 type="button"

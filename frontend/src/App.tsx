@@ -87,10 +87,10 @@ import { SportTrackerManager, type SportTrackerState } from './services/sportTra
 const LANG_STORAGE_KEY = 'doriscan_lang';
 
 const DEFAULT_DISCLAIMERS: Record<SupportedLang, string> = {
-  uz: 'VitaGo — axborot beruvchi intellektual tizim. Dori vositalarini yoki ularning analoglarini qabul qilishdan oldin davolovchi shifokoringiz yoki malakali farmatsevt bilan maslahatlashing.',
+  uz: 'Tetik — axborot beruvchi intellektual tizim. Dori vositalarini yoki ularning analoglarini qabul qilishdan oldin davolovchi shifokoringiz yoki malakali farmatsevt bilan maslahatlashing.',
   uz_cyrl:
-    'VitaGo — ахборот берувчи интеллектуал тизим. Дори воситаларини ёки уларнинг аналогларини қабул қилишдан олдин даволовчи шифокорингиз ёки малакали фармацевт билан маслаҳатлашинг.',
-  ru: 'VitaGo — информационная интеллектуальная система. Перед применением лекарственных средств или заменой на аналоги обязательно проконсультируйтесь с лечащим врачом или фармацевтом.',
+    'Tetik — ахборот берувчи интеллектуал тизим. Дори воситаларини ёки уларнинг аналогларини қабул қилишдан олдин даволовчи шифокорингиз ёки малакали фармацевт билан маслаҳатлашинг.',
+  ru: 'Tetik — информационная интеллектуальная система. Перед применением лекарственных средств или заменой на аналоги обязательно проконсультируйтесь с лечащим врачом или фармацевтом.',
 };
 
 export const App: React.FC = () => {
@@ -309,7 +309,7 @@ export const App: React.FC = () => {
           if ('Notification' in window && Notification.permission === 'granted') {
             try {
               new Notification('💊 Dori ichish vaqti bo‘ldi!', {
-                body: `${dueMed.drugName} (${dueMed.dose}) qabul qilish vaqti keldi. VitaGo ilovasida «Ichdim» tugmasini bosing!`,
+                body: `${dueMed.drugName} (${dueMed.dose}) qabul qilish vaqti keldi. Tetik ilovasida «Ichdim» tugmasini bosing!`,
                 icon: '/logo.png',
               });
             } catch {}
@@ -838,15 +838,15 @@ export const App: React.FC = () => {
               )}
             </button>
 
-            {/* Direct link to @VitaGoApp_bot on Web */}
+            {/* Direct link to @TetikApp_bot on Web */}
             {!isNativeTelegram && (
               <a
-                href="https://t.me/VitaGoApp_bot"
+                href="https://t.me/TetikApp_bot"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden lg:inline-flex items-center gap-1.5 rounded-xl border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-700 transition hover:bg-sky-100"
+                className="hidden lg:inline-flex items-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-2.5 py-1 text-xs font-bold text-teal-700 transition hover:bg-teal-100"
               >
-                <span>✈️ @VitaGoApp_bot</span>
+                <span>✈️ @TetikApp_bot</span>
               </a>
             )}
 
@@ -931,7 +931,7 @@ export const App: React.FC = () => {
               <span className="h-2.5 w-2.5 rounded-full bg-white animate-ping shrink-0" />
               <div className="min-w-0">
                 <p className="text-[11px] font-black truncate">
-                  VitaGo Sport • {sportTrackerState.isRecording ? 'Mashg‘ulot Faol (24/7)' : 'GPS Navigator Faol (24/7)'}
+                  Tetik Sport • {sportTrackerState.isRecording ? 'Mashg‘ulot Faol (24/7)' : 'GPS Navigator Faol (24/7)'}
                 </p>
                 <p className="text-[10px] font-bold text-white/90 truncate">
                   {sportTrackerState.isRecording

@@ -211,7 +211,7 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
         <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-slate-900 px-5 py-4 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-emerald-300" />
-            <h3 className="text-base sm:text-lg font-black">VitaGo Pullik Rejalari</h3>
+            <h3 className="text-base sm:text-lg font-black">Tetik Pullik Rejalari</h3>
           </div>
           <button
             onClick={onClose}
@@ -237,7 +237,7 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
                 <div className="flex-1">
                   <div className="font-black text-amber-900">Siz allaqachon ULTRA rejasidasiz! 🎉</div>
                   <div className="text-[11px] text-slate-600 font-normal mt-0.5">
-                    Barcha imkoniyatlar (VitaGo ⚡ Sport GPS, AI Ovozli Farmatsevt, 4x tezlik, Salomatlik, Ovqat skaneri, Ovozli Budilnik) 100% ochiq.
+                    Barcha imkoniyatlar (Tetik ⚡ Sport GPS, AI Ovozli Farmatsevt, 4x tezlik, Salomatlik, Ovqat skaneri, Ovozli Budilnik) 100% ochiq.
                   </div>
                 </div>
               </div>
@@ -380,7 +380,7 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
                   </li>
                   <li className="flex items-center gap-1.5">
                     <Check className="h-3.5 w-3.5 text-purple-600 shrink-0" />
-                    <span><b>VitaGo Sport & GPS Navigator:</b> 7 xil sport turi, real vaqt marshruti va AI murabbiy</span>
+                    <span><b>Tetik Sport & GPS Navigator:</b> 7 xil sport turi, real vaqt marshruti va AI murabbiy</span>
                   </li>
                 </ul>
               </div>
@@ -545,7 +545,7 @@ export const PlansCheckoutModal: React.FC<PlansCheckoutModalProps> = ({
                 Bu 100% xavfsiz va ishonchli. Yaqinda Click, Bank kartasi va Paynet orqali to'lash imkoniyati bo'ladi (Texnik jarayonlar olib borilmoqda...).
               </p>
               <p className="text-[10px] text-slate-500 leading-relaxed">
-                🛡️ VitaGo foydalanuvchilaridan hech qachon karta paroli, SMS kod yoki maxfiy ma'lumotlarni so'ramaydi va hisobidan ruxsatsiz pul yechmaydi.
+                🛡️ Tetik foydalanuvchilaridan hech qachon karta paroli, SMS kod yoki maxfiy ma'lumotlarni so'ramaydi va hisobidan ruxsatsiz pul yechmaydi.
               </p>
             </div>
 
